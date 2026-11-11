@@ -29,17 +29,20 @@ def upfront_costs(price, valuation, ltv, agent_fee_pct, legal_fee):
     return costs
 
 
-def monthly_holding_cost(saleable_area, management_fee_per_ft, monthly_rent, rates_pct, home_value, repair_pct):
-    """Owner's monthly costs other than the mortgage.
+def monthly_holding_costs(saleable_area, management_fee_per_ft, monthly_rent, rates_pct,
+                          government_rent_pct, home_value, repair_pct):
+    """Owner's monthly costs other than the mortgage, item by item, in HK$.
 
-    - management fee: HK$ per square foot of saleable area
-    - rates and government rent: about `rates_pct` % of a year's rent (the rateable value)
-    - repairs: `repair_pct` % of the home's value a year
+    Rates (差餉) and government rent (地租) are charged on the rateable value,
+    which is about a year's rent for the flat.
     """
-    management = saleable_area * management_fee_per_ft
-    rates = monthly_rent * 12 * rates_pct / 100 / 12
-    repairs = home_value * repair_pct / 100 / 12
-    return management + rates + repairs
+    rateable_value = monthly_rent * 12
+    return {
+        "management_fee": saleable_area * management_fee_per_ft,
+        "rates": rateable_value * rates_pct / 100 / 12,
+        "government_rent": rateable_value * government_rent_pct / 100 / 12,
+        "repairs": home_value * repair_pct / 100 / 12,
+    }
 
 
 def home_equity(home_value, sell_cost_pct, mortgage_left):

@@ -17,7 +17,7 @@ from rentorbuy.calc.mortgage import (
     max_ltv,
     monthly_payment,
 )
-from rentorbuy.calc.buy_side import upfront_costs, home_equity
+from rentorbuy.calc.buy_side import upfront_costs, home_equity, monthly_holding_costs
 from rentorbuy.calc.comparison import compare, compare_scenarios
 
 
@@ -91,6 +91,23 @@ def test_upfront_costs():
     assert low["down_payment"] == 1_640_000
 
 
+def test_monthly_holding_costs():
+    # 500 sq ft at $3 = 1,500 management fee. Rent 20,000, so rateable value 240,000:
+    # rates 5% = 12,000 a year = 1,000 a month; government rent 3% = 600 a month.
+    # Repairs 0.2% of 6M = 12,000 a year = 1,000 a month.
+    costs = monthly_holding_costs(500, 3, 20_000, 5, 3, 6_000_000, 0.2)
+    assert costs == {"management_fee": 1_500, "rates": 1_000, "government_rent": 600, "repairs": 1_000}
+
+
+def test_yearly_costs_add_up():
+    result = compare({"price": 6_000_000, "saleable_area": 500, "monthly_rent": 20_000,
+                      "mortgage_rate": 3, "price_growth": 0})
+    first = result["yearly_costs"][0]
+    items = first["mortgage"] + first["management_fee"] + first["rates"] + first["government_rent"] + first["repairs"]
+    assert close(items, first["owner_monthly"])
+    assert close(first["mortgage"], result["monthly_payment"])
+
+
 def test_home_equity():
     assert home_equity(5_000_000, 1.0, 3_000_000) == 1_950_000  # 4.95M - 3M
 
@@ -109,6 +126,7 @@ def no_frills(**changes):
         "investment_return": 0,
         "management_fee_per_ft": 0,
         "rates_pct": 0,
+        "government_rent_pct": 0,
         "repair_pct": 0,
         "sell_cost_pct": 0,
     }

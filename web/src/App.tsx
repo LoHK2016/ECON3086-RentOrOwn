@@ -6,9 +6,7 @@ import { NumberField, Row, Section, Segmented, digits, parsed } from "@/componen
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -21,6 +19,15 @@ import { SCENARIO_NAMES, type Estate, type Flat, type Result, type ScenarioName,
 import { cn } from "@/lib/utils"
 
 type Shift = "-1" | "0" | "1"
+
+const REGION_ORDER = ["香港島", "九龍", "新界"]
+const REGION_SHORT_EN: Record<string, string> = { 香港島: "HK Island", 九龍: "Kowloon", 新界: "New Territories" }
+
+/** The first Estate for each distinct key, keeping their order. */
+function unique(estates: Estate[], key: (e: Estate) => string): Estate[] {
+  const seen = new Set<string>()
+  return estates.filter((e) => !seen.has(key(e)) && seen.add(key(e)))
+}
 
 function ProvisionalBadge({ lang }: { lang: Lang }) {
   return (
@@ -119,15 +126,20 @@ export default function App() {
 
   const result = results?.[scenario]
   const used = result?.inputs
-  const districts = useMemo(() => {
-    const groups: Record<string, Estate[]> = {}
-    for (const e of data?.estates ?? []) {
-      const name = lang === "en" ? e.district_en : e.district_zh
-      groups[name] = groups[name] ?? []
-      groups[name].push(e)
-    }
-    return Object.entries(groups)
-  }, [data, lang])
+  // Region -> district -> Estate, each list in the order the Estates are listed.
+  const regions = REGION_ORDER.filter((r) => data?.estates.some((e) => e.region_zh === r))
+  const districts = unique((data?.estates ?? []).filter((e) => e.region_zh === estate?.region_zh), (e) => e.district_zh)
+  const estatesHere = (data?.estates ?? []).filter((e) => e.district_zh === estate?.district_zh)
+
+  function chooseRegion(region: string) {
+    const first = data?.estates.find((e) => e.region_zh === region)
+    if (first) chooseEstate(first.id)
+  }
+
+  function chooseDistrict(district: string) {
+    const first = data?.estates.find((e) => e.district_zh === district)
+    if (first) chooseEstate(first.id)
+  }
 
   function chooseEstate(id: string) {
     setEstateId(id)
@@ -174,21 +186,41 @@ export default function App() {
                 </>
               }
             >
-              <Row label={t("estate")}>
-                <Select value={estateId} onValueChange={chooseEstate}>
-                  <SelectTrigger className="h-8 max-w-48 border-none bg-transparent pr-0 text-[17px] shadow-none focus-visible:ring-0">
+              <div className="py-2.5">
+                <Segmented
+                  label={t("region")}
+                  value={estate.region_zh}
+                  onChange={chooseRegion}
+                  options={regions.map((r) => ({
+                    value: r,
+                    label: lang === "en" ? REGION_SHORT_EN[r] : r,
+                  }))}
+                />
+              </div>
+              <Row label={t("district")}>
+                <Select value={estate.district_zh} onValueChange={chooseDistrict}>
+                  <SelectTrigger aria-label={t("district")} className="h-8 max-w-56 border-none bg-transparent pr-0 text-[17px] shadow-none focus-visible:ring-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {districts.map(([district, estates]) => (
-                      <SelectGroup key={district}>
-                        <SelectLabel>{district}</SelectLabel>
-                        {estates.map((e) => (
-                          <SelectItem key={e.id} value={e.id}>
-                            {lang === "en" ? e.name_en : e.name_zh}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
+                    {districts.map((e) => (
+                      <SelectItem key={e.district_zh} value={e.district_zh}>
+                        {lang === "en" ? e.district_en : e.district_zh}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Row>
+              <Row label={t("estate")}>
+                <Select value={estateId} onValueChange={chooseEstate}>
+                  <SelectTrigger aria-label={t("estate")} className="h-8 max-w-56 border-none bg-transparent pr-0 text-[17px] shadow-none focus-visible:ring-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {estatesHere.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {lang === "en" ? e.name_en : e.name_zh}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -443,13 +475,25 @@ export default function App() {
                   </Section>
 
                   <div className="space-y-7">
-                    <Section title={t("firstYear")}>
-                      <Row label={t("repayment")}>{money(result.monthly_payment)}</Row>
-                      <Row label={t("ownerCosts")}>
-                        <span className="text-chart-1">{money(result.yearly_costs[0].owner_monthly)}</span>
+                    <Section title={t("firstYear")} footer={t("firstYearHint")}>
+                      <Row label={t("repayment")}>{money(result.yearly_costs[0].mortgage)}</Row>
+                      <Row label={t("managementFee")} hint={t("managementFeeHint", { fee: used.management_fee_per_ft })}>
+                        {money(result.yearly_costs[0].management_fee)}
                       </Row>
-                      <Row label={t("renterCosts")}>
-                        <span className="text-chart-2">{money(result.yearly_costs[0].rent_monthly)}</span>
+                      <Row label={t("rates")} hint={t("ratesHint", { pct: used.rates_pct })}>
+                        {money(result.yearly_costs[0].rates)}
+                      </Row>
+                      <Row label={t("governmentRent")} hint={t("ratesHint", { pct: used.government_rent_pct })}>
+                        {money(result.yearly_costs[0].government_rent)}
+                      </Row>
+                      <Row label={t("repairs")} hint={t("repairsHint", { pct: used.repair_pct })}>
+                        {money(result.yearly_costs[0].repairs)}
+                      </Row>
+                      <Row label={<span className="font-semibold">{t("ownerTotal")}</span>}>
+                        <span className="font-semibold text-chart-1">{money(result.yearly_costs[0].owner_monthly)}</span>
+                      </Row>
+                      <Row label={<span className="font-semibold">{t("renterCosts")}</span>}>
+                        <span className="font-semibold text-chart-2">{money(result.yearly_costs[0].rent_monthly)}</span>
                       </Row>
                     </Section>
                     <Section title={t("reference")}>

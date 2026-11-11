@@ -4,7 +4,9 @@ export type Estate = {
   id: string
   name_zh: string
   name_en: string
-  district_zh: string
+  region_zh: string
+  region_en: string
+  district_zh: string // one of the 18 districts
   district_en: string
   price_per_ft: number
   rent_per_ft: number
@@ -57,6 +59,10 @@ export type Result = {
     horizon_years: number
     price_growth: number
     rent_growth: number
+    management_fee_per_ft: number
+    rates_pct: number
+    government_rent_pct: number
+    repair_pct: number
   }
   verdict: "buy" | "rent"
   gap: number
@@ -74,7 +80,16 @@ export type Result = {
     total_cash: number
   }
   monthly_payment: number
-  yearly_costs: { year: number; owner_monthly: number; rent_monthly: number }[]
+  yearly_costs: {
+    year: number
+    mortgage: number
+    management_fee: number
+    rates: number
+    government_rent: number
+    repairs: number
+    owner_monthly: number
+    rent_monthly: number
+  }[]
   rental_yield: number
   debt_servicing_ratio: number | null
   dsr_too_high: boolean

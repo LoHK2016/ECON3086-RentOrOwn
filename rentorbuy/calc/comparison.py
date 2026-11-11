@@ -14,7 +14,7 @@ from rentorbuy.calc.mortgage import (
     max_ltv,
     monthly_payment,
 )
-from rentorbuy.calc.buy_side import upfront_costs, monthly_holding_cost, home_equity
+from rentorbuy.calc.buy_side import upfront_costs, monthly_holding_costs, home_equity
 from rentorbuy.calc.rent_side import rent_for_year, grow_one_month
 
 DEFAULTS = {
@@ -39,7 +39,8 @@ DEFAULTS = {
     "investment_return": 2.0,  # % a year
     "monthly_income": None,  # HK$, only used for the debt servicing ratio
     "management_fee_per_ft": 3.0,  # HK$ per sq ft per month
-    "rates_pct": 8.0,  # rates (5%) + government rent (3%) of a year's rent
+    "rates_pct": 5.0,  # rates (差餉): 5% of the rateable value a year
+    "government_rent_pct": 3.0,  # government rent (地租): 3% of the rateable value a year
     "repair_pct": 0.2,  # % of the home's value a year
     "agent_fee_pct": 1.0,  # paid when buying
     "legal_fee": 10_000,
@@ -112,10 +113,11 @@ def compare(inputs):
         rent = rent_for_year(x["monthly_rent"], x["rent_growth"], year_index)
 
         mortgage = payment if month <= x["mortgage_years"] * 12 else 0
-        holding = monthly_holding_cost(
-            x["saleable_area"], x["management_fee_per_ft"], rent, x["rates_pct"], home_value, x["repair_pct"]
+        holding = monthly_holding_costs(
+            x["saleable_area"], x["management_fee_per_ft"], rent, x["rates_pct"],
+            x["government_rent_pct"], home_value, x["repair_pct"],
         )
-        owner_cost = mortgage + holding
+        owner_cost = mortgage + sum(holding.values())
 
         # Last month's savings earn a return, then whoever spent less saves the difference.
         renter_savings = grow_one_month(renter_savings, x["investment_return"])
@@ -126,7 +128,12 @@ def compare(inputs):
             owner_savings += rent - owner_cost
 
         if month % 12 == 1:
-            yearly_costs.append({"year": year_index + 1, "owner_monthly": owner_cost, "rent_monthly": rent})
+            # The first month of each year, item by item.
+            costs = {"year": year_index + 1, "mortgage": mortgage}
+            costs.update(holding)
+            costs["owner_monthly"] = owner_cost
+            costs["rent_monthly"] = rent
+            yearly_costs.append(costs)
 
         if month % 12 == 0:
             mortgage_left = balance_after(loan, rate, x["mortgage_years"], month)

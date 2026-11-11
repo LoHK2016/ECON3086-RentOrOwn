@@ -16,14 +16,32 @@ from rentorbuy.scrapers.estates import ESTATES
 
 BASE_URL = "https://www.midland.com.hk/zh-hk/estate/"
 
-# Midland's Chinese district names, in English, for the English site.
-DISTRICTS_EN = {
-    "中西區": "Central and Western", "灣仔": "Wan Chai", "東區": "Eastern", "南區": "Southern",
-    "油尖旺": "Yau Tsim Mong", "深水埗": "Sham Shui Po", "九龍城": "Kowloon City",
-    "黃大仙": "Wong Tai Sin", "觀塘": "Kwun Tong", "將軍澳": "Tseung Kwan O", "西貢": "Sai Kung",
-    "沙田": "Sha Tin", "大埔": "Tai Po", "北區": "North", "荃灣": "Tsuen Wan", "葵青": "Kwai Tsing",
-    "屯門": "Tuen Mun", "元朗": "Yuen Long", "離島": "Islands",
+# Hong Kong's 18 districts, by region, with their English names.
+DISTRICTS = {
+    "香港島": {"中西區": "Central and Western", "灣仔": "Wan Chai", "東區": "Eastern", "南區": "Southern"},
+    "九龍": {"油尖旺": "Yau Tsim Mong", "深水埗": "Sham Shui Po", "九龍城": "Kowloon City",
+             "黃大仙": "Wong Tai Sin", "觀塘": "Kwun Tong"},
+    "新界": {"葵青": "Kwai Tsing", "荃灣": "Tsuen Wan", "屯門": "Tuen Mun", "元朗": "Yuen Long",
+             "北區": "North", "大埔": "Tai Po", "沙田": "Sha Tin", "西貢": "Sai Kung", "離島": "Islands"},
 }
+REGIONS_EN = {"香港島": "Hong Kong Island", "九龍": "Kowloon", "新界": "New Territories"}
+
+# Midland areas that are not one of the 18 districts, and the district they are in.
+AREA_TO_DISTRICT = {"將軍澳": "西貢", "灣仔區": "灣仔", "中西區": "中西區"}
+
+
+def district_of(midland_area):
+    """The official district and region for a Midland area name, in both languages."""
+    district = AREA_TO_DISTRICT.get(midland_area, midland_area)
+    for region, districts in DISTRICTS.items():
+        if district in districts:
+            return {
+                "region_zh": region,
+                "region_en": REGIONS_EN[region],
+                "district_zh": district,
+                "district_en": districts[district],
+            }
+    raise ValueError(f"not one of the 18 districts: {midland_area}")
 
 
 def get_estate_data(slug):
@@ -59,8 +77,7 @@ def summarise(slug, data):
         "slug": slug,
         "name_zh": data["name"]["chi"],
         "name_en": data["name"]["en"],
-        "district_zh": data["subregion"]["name"],
-        "district_en": DISTRICTS_EN.get(data["subregion"]["name"], data["subregion"]["name"]),
+        **district_of(data["subregion"]["name"]),
         # Prefer recent transactions; fall back to the asking prices of listings.
         "price_per_ft": first_number(market.get("net_ft_price"), data.get("avg_net_ft_price")),
         "rent_per_ft": first_number(market.get("net_ft_rent"), listings.get("avg_net_ft_rent")),
