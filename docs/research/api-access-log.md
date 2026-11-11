@@ -9,6 +9,18 @@ Read this before calling any live API or website from your own machine (HKMA, Mi
 - **Retries are for flaky endpoints only.** Retry with a growing wait (as in `rentorbuy/scrapers/hkma.py`) when a site fails at random, like HSBC's valuation API. A run of identical errors (403, 405, 429) is a block: stop, and try again hours later.
 - **Log every burst here.** Write down the date, the endpoint, how many requests and what came back, so the next person knows what each source tolerates.
 
+## Midland from GitHub Actions: refused on 2026-11-11
+
+Midland answers GitHub's servers with **403 Forbidden** on every estate page; from a home connection in Hong Kong the same pages work. HKMA answered the same run normally.
+
+| Time (UTC) | Who | Requests | Result |
+| --- | --- | --- | --- |
+| 11 Nov 15:28 | `daily.py` from home | 27 Midland pages | all 200 |
+| 11 Nov 16:27 | `scrape.yml` on GitHub Actions | 27 Midland pages | all **403** (the scraper did not yet stop at the first one) |
+| 11 Nov 16:27 | `scrape.yml` on GitHub Actions | 2 HKMA | 200 |
+
+What we changed: `midland.scrape_all()` now stops at the first 403, 405 or 429, and `daily.py` keeps each Estate's last figures (with their date) while still saving fresh rates.
+
 ## HSBC valuation tool: 2026-11-11 to 12, no problems
 
 About 1 call in 4 gets a random 404 (expected; we retry). No 403, 405 or 429.

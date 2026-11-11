@@ -10,6 +10,7 @@ export type Estate = {
   rent_per_ft: number
   transactions: number | null
   source: string
+  scraped?: string // date of these figures; older than the snapshot if Midland failed since
   hsbc: { zoneId: string; districtId: string; estateId: string; name: string } | null
 }
 

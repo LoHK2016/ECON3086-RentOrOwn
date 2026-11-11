@@ -74,13 +74,25 @@ def summarise(slug, data):
     }
 
 
+BLOCKED = (403, 405, 429)  # Midland is refusing us, e.g. GitHub's servers get 403
+
+
 def scrape_all(slugs=ESTATES, pause=1.0):
-    """Scrape every Estate, waiting `pause` seconds between pages. Skips pages that fail."""
+    """Scrape every Estate, waiting `pause` seconds between pages.
+
+    A page that fails is skipped. If Midland refuses us, we stop at once:
+    asking for the other pages would only be refused too.
+    """
     estates = []
     for slug in slugs:
         try:
             estates.append(summarise(slug, get_estate_data(slug)))
             print("ok  ", slug)
+        except requests.HTTPError as error:
+            print("FAIL", slug, error)
+            if error.response is not None and error.response.status_code in BLOCKED:
+                print("Midland is refusing us; stopping. See docs/research/api-access-log.md")
+                break
         except (requests.RequestException, KeyError, TypeError, AttributeError, ValueError) as error:
             print("FAIL", slug, error)
         time.sleep(pause)

@@ -15,19 +15,41 @@ from rentorbuy.scrapers import hkma, midland
 DATA = Path(__file__).resolve().parents[2] / "data"
 
 
-def get_rates_or_last_known(assumptions):
+def last_snapshot():
+    """The snapshot saved last time, or {} if there is none."""
+    latest = DATA / "latest.json"
+    if latest.exists():
+        return json.loads(latest.read_text(encoding="utf-8"))
+    return {}
+
+
+def get_rates_or_last_known(assumptions, last):
     """Today's rates, or the last ones we saved (marked stale) if the HKMA API fails."""
     try:
         return hkma.get_rates()
     except (requests.RequestException, KeyError, IndexError, ValueError) as error:
         print("HKMA failed, using last known rates:", error)
-        latest = DATA / "latest.json"
-        if latest.exists():
-            rates = json.loads(latest.read_text(encoding="utf-8"))["rates"]
-        else:
-            rates = dict(assumptions["fallback_rates"])
+        rates = dict(last.get("rates") or assumptions["fallback_rates"])
         rates["stale"] = True
         return rates
+
+
+def add_last_known_estates(scraped, last, today):
+    """Today's Estates, plus the last saved figures for any Estate not scraped today.
+
+    Each Estate's "scraped" date says how old its figures are.
+    """
+    estates = []
+    done = set()
+    for estate in scraped:
+        estate["scraped"] = today
+        estates.append(estate)
+        done.add(estate["id"])
+    for estate in last.get("estates", []):
+        if estate["id"] not in done:
+            estate.setdefault("scraped", last["date"])
+            estates.append(estate)
+    return estates
 
 
 def attach_hsbc_ids(estates):
@@ -42,10 +64,13 @@ def attach_hsbc_ids(estates):
 def build_snapshot():
     """Scrape everything and combine it with the hand-entered assumptions."""
     assumptions = json.loads((DATA / "manual" / "assumptions.json").read_text(encoding="utf-8"))
+    last = last_snapshot()
+    today = date.today().isoformat()
+    scraped = midland.scrape_all()
     return {
-        "date": date.today().isoformat(),
-        "rates": get_rates_or_last_known(assumptions),
-        "estates": attach_hsbc_ids(midland.scrape_all()),
+        "date": today,
+        "rates": get_rates_or_last_known(assumptions, last),
+        "estates": attach_hsbc_ids(add_last_known_estates(scraped, last, today)),
         "bank_plans": assumptions["bank_plans"],
         "scenarios": {k: v for k, v in assumptions["scenarios"].items() if not k.startswith("_")},
         "investment_return": assumptions["investment_return"],
@@ -63,6 +88,7 @@ def save(snapshot):
 if __name__ == "__main__":
     snapshot = build_snapshot()
     if len(snapshot["estates"]) == 0:
-        raise SystemExit("no estates scraped; keeping yesterday's data")
+        raise SystemExit("no estate data at all; nothing saved")
     save(snapshot)
-    print(f"saved {len(snapshot['estates'])} estates for {snapshot['date']}")
+    fresh = [e for e in snapshot["estates"] if e["scraped"] == snapshot["date"]]
+    print(f"saved {len(snapshot['estates'])} estates for {snapshot['date']} ({len(fresh)} scraped today)")

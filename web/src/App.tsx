@@ -476,7 +476,12 @@ export default function App() {
 
                 <Section title={t("dataTitle")}>
                   <div className="space-y-1.5 py-3 text-[15px] leading-snug">
-                    <p>{t("dataEstate", { date: data.date })}</p>
+                    <p>
+                      {t("dataEstate", { date: estate.scraped ?? data.date })}
+                      {(estate.scraped ?? data.date) !== data.date && (
+                        <span className="text-warning"> {t("dataEstateStale")}</span>
+                      )}
+                    </p>
                     <p>{t("dataHsbc")}</p>
                     <p>
                       {t("dataRates", { date: data.rates.hibor_date })}
