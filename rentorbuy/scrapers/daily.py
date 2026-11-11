@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 from rentorbuy.calc.deposits import best_deposit, rank_all
-from rentorbuy.scrapers import banks, deposits, hkma, midland
+from rentorbuy.scrapers import banks, centaline, deposits, hkma, midland
 
 DATA = Path(__file__).resolve().parents[2] / "data"
 
@@ -54,6 +54,30 @@ def add_last_known_estates(scraped, last, today):
         if estate["id"] not in done:
             estate.setdefault("scraped", last["date"])
             estates.append(estate)
+    return estates
+
+
+def use_centaline(estates, figures, today):
+    """Estates Midland did not give today take Centaline's asking prices, when it has enough listings.
+
+    `figures` is {Estate name: Centaline figures}. An Estate with no usable
+    Centaline figures keeps its last Midland figures and their date.
+    """
+    for estate in estates:
+        found = figures.get(estate["name_zh"])
+        if estate.get("scraped") == today or not found:
+            continue
+        if found["price_per_ft"] is None or found["rent_per_ft"] is None:
+            continue
+        estate.update({
+            "price_per_ft": found["price_per_ft"],
+            "rent_per_ft": found["rent_per_ft"],
+            "price_source": "centaline",
+            "transactions": None,
+            "listings": found["sale_listings"],
+            "source": found["source"],
+            "scraped": today,
+        })
     return estates
 
 
@@ -102,13 +126,18 @@ def build_snapshot():
     last = last_snapshot()
     today = datetime.now(ZoneInfo("Asia/Hong_Kong")).date().isoformat()  # GitHub's clock is UTC
     scraped = midland.scrape_all()
-    print(f"{len(scraped)} estates scraped today")
+    print(f"{len(scraped)} estates scraped from Midland today")
+    estates = add_last_known_estates(scraped, last, today)
+    missing = [e["name_zh"] for e in estates if e["scraped"] != today]
+    if missing:
+        print(f"{len(missing)} estates missing; trying Centaline")
+        estates = use_centaline(estates, centaline.scrape_all(missing), today)
     found = deposits_or_last_known(deposits.get_deposit_rates(), last, today)
     return {
         "date": today,
         "rates": get_rates_or_last_known(assumptions, last),
         "bank_primes": primes_or_last_known(banks.get_primes(), last, today),
-        "estates": attach_hsbc_ids(add_last_known_estates(scraped, last, today)),
+        "estates": attach_hsbc_ids(estates),
         "bank_plans": assumptions["bank_plans"],
         "scenarios": {k: v for k, v in assumptions["scenarios"].items() if not k.startswith("_")},
         "deposits": found,

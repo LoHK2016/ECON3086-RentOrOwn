@@ -33,6 +33,7 @@ jobs:
           python tests/test_banks.py
           python tests/test_deposits.py
           python tests/test_etf_returns.py
+          python tests/test_centaline.py
       - uses: pnpm/action-setup@v4
         with:
           version: 10

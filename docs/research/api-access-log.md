@@ -27,11 +27,14 @@ Midland answers GitHub's servers with **403 Forbidden** on every estate page; fr
 
 | 12 Nov 01:12 HKT | `curl` from home, each time-deposit offer page once (saved as test fixtures) | HSBC, BOCHK, Standard Chartered, Mox, eleBank JSON: 1 each | all 200 |
 
-| 13 Nov 03:12 HKT | `rentorbuy.scrapers.etf` from home, yfinance, whole monthly history | Yahoo Finance: 2 tickers (2800.HK, SPY), a few requests each | both fine; saved to `data/etf/`. Yahoo has 2800.HK monthly prices only from 2008-01 |
+| 12 Nov 03:12 HKT | `rentorbuy.scrapers.etf` from home, yfinance, whole monthly history | Yahoo Finance: 2 tickers (2800.HK, SPY), a few requests each | both fine; saved to `data/etf/`. Yahoo has 2800.HK monthly prices only from 2008-01 |
+
+| 12 Nov 05:04 HKT | temporary `probe-centaline.yml` on GitHub Actions (branch `probe/centaline`, since deleted) | 1 Centaline list page | **200**, full page (640 KB): Centaline answers GitHub's servers. (A first run pushed at 04:21 sat queued and never started.) |
+| 12 Nov 04:26–04:28 HKT | `curl` from home: Taikoo Shing buy list, rent list, transaction list (first two saved as test fixtures) | 3 Centaline | all 200; the transaction list's rows load by JavaScript from the disallowed API, so the HTML has none |
 
 GitHub's runners share IP addresses with many other users, so HKMA's limit may already be used up by others. `daily.py` now fetches HIBOR and prime separately, so one refusal keeps the other fresh.
 
-What we changed: `midland.scrape_all()` now stops at the first 403, 405 or 429, and `daily.py` keeps each Estate's last figures (with their date) while still saving fresh rates.
+What we changed: `midland.scrape_all()` now stops at the first 403, 405 or 429, and `daily.py` keeps each Estate's last figures (with their date) while still saving fresh rates. Since 12 Nov, an Estate Midland misses takes Centaline's median asking prices instead (`rentorbuy/scrapers/centaline.py`), and keeps its last figures only if Centaline fails too.
 
 ## HSBC valuation tool: 2026-11-11 to 12, no problems
 

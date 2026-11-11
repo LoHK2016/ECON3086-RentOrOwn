@@ -12,7 +12,9 @@ export type Estate = {
   rent_per_ft: number
   transactions: number | null
   source: string
-  scraped?: string // date of these figures; older than the snapshot if Midland failed since
+  scraped?: string // date of these figures; older than the snapshot if every source failed since
+  price_source?: "midland" | "centaline" // Midland: transactions; Centaline: asking prices of listings
+  listings?: number // Centaline: how many sale listings the median is taken from
   hsbc: { zoneId: string; districtId: string; estateId: string; name: string } | null
 }
 

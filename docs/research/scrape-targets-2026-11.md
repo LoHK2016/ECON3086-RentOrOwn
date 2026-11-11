@@ -24,6 +24,9 @@ A survey of HK listing sites, bank rate pages and bank valuation tools, done wit
 - Sale list: `https://hk.centanet.com/findproperty/list/buy/太古城`. Rent list: `https://hk.centanet.com/findproperty/list/rent/太古城`. 24 cards per page.
 - Estate history page, e.g. `https://hk.centanet.com/estate/太古城-翠湖台/2-OVDUURFSCJ`. It shows Land Registry transactions (date, unit, price, saleable area, saleable $/ft²), 10-month $/ft² ranges and the median monthly rent.
 - robots.txt disallows `/centanetapi/api/` and `/estate/hkChartAPi/PropertyPrice/GetAvgPrice`, so do not call those.
+- Each list card has `.title-lg` (estate and court), `.usable-area` ("實用 實 702 呎 702呎 @ $21,082 /呎") and `.price-info`. `rentorbuy/scrapers/centaline.py` keeps cards whose title starts with the estate name and takes the median $/ft.
+- `/findproperty/list/transaction/<estate>` returns the page frame but no rows: they load by JavaScript from the disallowed API. So from Centaline we only get **asking** prices.
+- On 12 Nov 2026, Taikoo Shing's median asking price was $18,804/ft against Midland's transaction figure of $16,256/ft (+16%). Rent: $48.5/ft asking against $46.6/ft. Asking prices overstate the price, which favours renting.
 
 ## Bank rate pages
 

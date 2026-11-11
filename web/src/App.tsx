@@ -188,13 +188,19 @@ export default function App() {
               title={t("home")}
               footer={
                 <>
-                  {t("estateFacts", {
-                    price: money(estate.price_per_ft),
-                    rent: "$" + estate.rent_per_ft.toFixed(1),
-                    tx: estate.transactions ?? "–",
-                  })}{" "}
+                  {estate.price_source === "centaline"
+                    ? t("estateFactsAsking", {
+                        price: money(estate.price_per_ft),
+                        rent: "$" + estate.rent_per_ft.toFixed(1),
+                        n: estate.listings ?? "–",
+                      })
+                    : t("estateFacts", {
+                        price: money(estate.price_per_ft),
+                        rent: "$" + estate.rent_per_ft.toFixed(1),
+                        tx: estate.transactions ?? "–",
+                      })}{" "}
                   <a href={estate.source} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-primary">
-                    Midland <ExternalLink className="size-3" />
+                    {estate.price_source === "centaline" ? "Centaline" : "Midland"} <ExternalLink className="size-3" />
                   </a>
                 </>
               }
@@ -602,12 +608,16 @@ export default function App() {
 
                 <Section title={t("dataTitle")}>
                   <div className="space-y-1.5 py-3 text-[15px] leading-snug">
-                    <p>
-                      {t("dataEstate", { date: estate.scraped ?? data.date })}
-                      {(estate.scraped ?? data.date) !== data.date && (
-                        <span className="text-warning"> {t("dataEstateStale")}</span>
-                      )}
-                    </p>
+                    {estate.price_source === "centaline" ? (
+                      <p className="text-warning">{t("dataEstateCentaline", { date: estate.scraped ?? data.date })}</p>
+                    ) : (
+                      <p>
+                        {t("dataEstate", { date: estate.scraped ?? data.date })}
+                        {(estate.scraped ?? data.date) !== data.date && (
+                          <span className="text-warning"> {t("dataEstateStale")}</span>
+                        )}
+                      </p>
+                    )}
                     <p>{t("dataHsbc")}</p>
                     <p>
                       {t("dataRates", { date: data.rates.hibor_date })}

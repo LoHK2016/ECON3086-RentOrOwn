@@ -13,6 +13,7 @@ from rentorbuy.scrapers.daily import (
     default_investment_return,
     deposits_or_last_known,
     primes_or_last_known,
+    use_centaline,
 )  # needs requests and bs4: `uv run`
 
 LAST = {"date": "2026-11-11", "estates": [{"id": "E1", "price_per_ft": 100}, {"id": "E2", "price_per_ft": 200}]}
@@ -30,6 +31,25 @@ def test_everything_failed():
     estates = add_last_known_estates([], LAST, "2026-11-12")
     assert [e["scraped"] for e in estates] == ["2026-11-11", "2026-11-11"]
     assert add_last_known_estates([], {}, "2026-11-12") == []
+
+
+def test_centaline_fills_in_when_midland_fails():
+    estates = add_last_known_estates([{"id": "E1", "name_zh": "甲", "price_per_ft": 110}],
+                                     {"date": "2026-11-11", "estates": [
+                                         {"id": "E2", "name_zh": "乙", "price_per_ft": 200, "rent_per_ft": 5},
+                                         {"id": "E3", "name_zh": "丙", "price_per_ft": 300, "rent_per_ft": 6}]},
+                                     "2026-11-12")
+    figures = {
+        "甲": {"price_per_ft": 999, "rent_per_ft": 9, "sale_listings": 24, "source": "c/甲"},
+        "乙": {"price_per_ft": 210, "rent_per_ft": 5.5, "sale_listings": 24, "source": "c/乙"},
+        "丙": {"price_per_ft": None, "rent_per_ft": 6.5, "sale_listings": 2, "source": "c/丙"},
+    }
+    by_id = {e["id"]: e for e in use_centaline(estates, figures, "2026-11-12")}
+    assert by_id["E1"]["price_per_ft"] == 110  # Midland worked today: Centaline is not used
+    assert by_id["E2"]["price_per_ft"] == 210 and by_id["E2"]["price_source"] == "centaline"
+    assert by_id["E2"]["scraped"] == "2026-11-12"
+    assert by_id["E3"]["price_per_ft"] == 300  # too few listings: keeps Midland's old figure
+    assert by_id["E3"]["scraped"] == "2026-11-11"
 
 
 def test_bank_primes():

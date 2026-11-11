@@ -88,6 +88,7 @@ def summarise(slug, data):
         "max_area": data.get("max_net_area"),
         "by_room": by_room,
         "source": BASE_URL + slug,
+        "price_source": "midland",
     }
 
 
