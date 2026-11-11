@@ -186,7 +186,8 @@ export default function App() {
                 </>
               }
             >
-              <div className="py-2.5">
+              <div className="space-y-2 py-3">
+                <span className="text-[17px]">{t("region")}</span>
                 <Segmented
                   label={t("region")}
                   value={estate.region_zh}
