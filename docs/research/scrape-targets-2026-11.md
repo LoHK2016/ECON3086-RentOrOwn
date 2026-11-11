@@ -26,7 +26,7 @@ A survey of HK listing sites, bank rate pages and bank valuation tools, done wit
 - robots.txt disallows `/centanetapi/api/` and `/estate/hkChartAPi/PropertyPrice/GetAvgPrice`, so do not call those.
 - Each list card has `.title-lg` (estate and court), `.usable-area` ("實用 實 702 呎 702呎 @ $21,082 /呎") and `.price-info`. `rentorbuy/scrapers/centaline.py` keeps cards whose title starts with the estate name and takes the median $/ft.
 - `/findproperty/list/transaction/<estate>` returns the page frame but no rows: they load by JavaScript from the disallowed API. So from Centaline we only get **asking** prices.
-- On 12 Nov 2026, Taikoo Shing's median asking price was $18,804/ft against Midland's transaction figure of $16,256/ft (+16%). Rent: $48.5/ft asking against $46.6/ft. Asking prices overstate the price, which favours renting.
+- On 12 Nov 2026 the first GitHub run read all 27 estates it needed (24 sale and 24 rent listings each). Against Midland's figures from 11 Nov, Centaline's median asking price per ft was a median **+7.6%** higher (from −3% at 屯門市廣場 to +20% at 維景灣畔; Taikoo Shing +16%), and asking rent a median +2.5%. Asking prices overstate the price, which favours renting.
 
 ## Bank rate pages
 
