@@ -51,6 +51,21 @@ export type Snapshot = {
   investment_return: { value: number; provisional: boolean; bank?: string; months?: string }
   deposits?: Record<string, { rates: Record<string, number>; url: string; date: string }>
   deposit_ranking?: Record<string, { bank: string; rate: number; url: string }[]>
+  etf_returns?: Record<string, EtfReturn>
+}
+
+/** An index ETF's past return, worked out in rentorbuy/etf_returns.py. */
+export type EtfReturn = {
+  name: string
+  value: number // average % a year over the last `years` years
+  years: number
+  dividend_tax: number
+  worst: number // worst 10-year stretch, % a year
+  worst_from: string
+  worst_to: string
+  losing_share: number // % of 10-year stretches that lost money
+  history_from: string
+  prices_to: string
 }
 
 export type Result = {

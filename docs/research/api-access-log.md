@@ -27,6 +27,8 @@ Midland answers GitHub's servers with **403 Forbidden** on every estate page; fr
 
 | 12 Nov 01:12 HKT | `curl` from home, each time-deposit offer page once (saved as test fixtures) | HSBC, BOCHK, Standard Chartered, Mox, eleBank JSON: 1 each | all 200 |
 
+| 13 Nov 03:12 HKT | `rentorbuy.scrapers.etf` from home, yfinance, whole monthly history | Yahoo Finance: 2 tickers (2800.HK, SPY), a few requests each | both fine; saved to `data/etf/`. Yahoo has 2800.HK monthly prices only from 2008-01 |
+
 GitHub's runners share IP addresses with many other users, so HKMA's limit may already be used up by others. `daily.py` now fetches HIBOR and prime separately, so one refusal keeps the other fresh.
 
 What we changed: `midland.scrape_all()` now stops at the first 403, 405 or 429, and `daily.py` keeps each Estate's last figures (with their date) while still saving fresh rates.

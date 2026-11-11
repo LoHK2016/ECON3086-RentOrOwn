@@ -25,13 +25,14 @@ jobs:
           python-version: "3.12"
       - name: Run the tests
         run: |
-          pip install requests beautifulsoup4
+          pip install requests beautifulsoup4 pandas
           python tests/test_calc.py
           python tests/test_valuation.py
           python tests/test_daily.py
           python tests/test_scrapers.py
           python tests/test_banks.py
           python tests/test_deposits.py
+          python tests/test_etf_returns.py
       - uses: pnpm/action-setup@v4
         with:
           version: 10

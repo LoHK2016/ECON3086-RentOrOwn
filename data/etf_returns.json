@@ -1,0 +1,26 @@
+{
+  "2800.HK": {
+    "name": "Tracker Fund of Hong Kong (Hang Seng Index)",
+    "value": 5.83,
+    "years": 18,
+    "dividend_tax": 0.0,
+    "worst": -0.55,
+    "worst_from": "2012-10",
+    "worst_to": "2022-10",
+    "losing_share": 4,
+    "history_from": "2008-01",
+    "prices_to": "2026-11"
+  },
+  "SPY": {
+    "name": "SPDR S&P 500 ETF",
+    "value": 10.21,
+    "years": 20,
+    "dividend_tax": 0.3,
+    "worst": -3.92,
+    "worst_from": "1999-02",
+    "worst_to": "2009-02",
+    "losing_share": 9,
+    "history_from": "1993-01",
+    "prices_to": "2026-11"
+  }
+}

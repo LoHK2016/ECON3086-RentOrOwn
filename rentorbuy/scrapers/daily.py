@@ -81,6 +81,12 @@ def default_investment_return(found, assumptions):
     return {"value": rate, "bank": bank, "months": "12", "provisional": False}
 
 
+def etf_returns():
+    """Past ETF returns saved by rentorbuy/etf_returns.py (run by hand, not daily)."""
+    path = DATA / "etf_returns.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
 def attach_hsbc_ids(estates):
     """Copy each Estate's HSBC ids (found by hsbc_estates.py) into it, for the flat picker."""
     path = DATA / "hsbc_estates.json"
@@ -108,6 +114,7 @@ def build_snapshot():
         "deposits": found,
         "deposit_ranking": rank_all(found),
         "investment_return": default_investment_return(found, assumptions),
+        "etf_returns": etf_returns(),
     }
 
 

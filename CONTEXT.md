@@ -57,7 +57,7 @@ The first year in which the buy side's Net Worth Outcome exceeds the rent side's
 _Avoid_: Payback period
 
 **Investment Return** (投資回報率):
-The annual return assumed on money the renter does not spend on buying (the down payment and any monthly savings). Defaults to a bank time-deposit rate; the user may raise it.
+The annual return assumed on money the renter does not spend on buying (the down payment and any monthly savings). Defaults to the best 12-month bank time-deposit rate. The user may instead pick an index ETF's past average return (Tracker Fund 2800.HK, or SPY after 30% US dividend tax) or enter their own.
 _Avoid_: Opportunity cost rate, discount rate
 
 **Market Scenario** (市況情景):

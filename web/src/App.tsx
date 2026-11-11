@@ -20,6 +20,10 @@ import { SCENARIO_NAMES, type Estate, type Flat, type Result, type ScenarioName,
 import { cn } from "@/lib/utils"
 
 type Shift = "-1" | "0" | "1"
+type InvestMode = "deposit" | "hk" | "us" | "custom"
+
+// The ETF behind each stock choice (returns worked out in rentorbuy/etf_returns.py).
+const ETF_TICKER = { hk: "2800.HK", us: "SPY" } as const
 
 const REGION_ORDER = ["香港島", "九龍", "新界"]
 const REGION_SHORT_EN: Record<string, string> = { 香港島: "HK Island", 九龍: "Kowloon", 新界: "New Territories" }
@@ -64,7 +68,7 @@ export default function App() {
   const [shift, setShift] = useState<Shift>("0")
   const [horizon, setHorizon] = useState(10)
   const [invest, setInvest] = useState("")
-  const [investMode, setInvestMode] = useState<"deposit" | "custom">("deposit")
+  const [investMode, setInvestMode] = useState<InvestMode>("deposit")
   const [rebate, setRebate] = useState("")
   const [scenario, setScenario] = useState<ScenarioName>("neutral")
 
@@ -94,6 +98,7 @@ export default function App() {
   // The bank's own prime if we could read it; otherwise HKMA's (Standard Chartered).
   const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
   const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
+  const etf = investMode === "hk" || investMode === "us" ? data?.etf_returns?.[ETF_TICKER[investMode]] : undefined
 
   const inputs = useMemo(() => {
     if (!data || !estate || !plan) return null
@@ -115,10 +120,10 @@ export default function App() {
       ltv: ltv === null ? undefined : ltv / 100,
       mortgage_years: term,
       horizon_years: horizon,
-      investment_return: (investMode === "custom" ? parsed(invest) : undefined) ?? data.investment_return.value,
+      investment_return: (investMode === "custom" ? parsed(invest) : etf?.value) ?? data.investment_return.value,
       cash_rebate_pct: parsed(rebate) ?? plan.cash_rebate_pct,
     }
-  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, rebate])
+  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
 
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
@@ -400,6 +405,8 @@ export default function App() {
                   onChange={setInvestMode}
                   options={[
                     { value: "deposit", label: t("investDeposit") },
+                    ...(data.etf_returns?.[ETF_TICKER.hk] ? [{ value: "hk" as const, label: t("investHk") }] : []),
+                    ...(data.etf_returns?.[ETF_TICKER.us] ? [{ value: "us" as const, label: t("investUs") }] : []),
                     { value: "custom", label: t("investCustom") },
                   ]}
                 />
@@ -414,6 +421,23 @@ export default function App() {
                   }
                 >
                   <span className="text-foreground tabular-nums">{data.investment_return.value.toFixed(2)}%</span>
+                </Row>
+              ) : etf && (investMode === "hk" || investMode === "us") ? (
+                <Row
+                  label={t("etfRate", { name: t(investMode === "hk" ? "etf2800" : "etfSpy"), ticker: ETF_TICKER[investMode] })}
+                  hint={
+                    t(etf.dividend_tax ? "etfTaxHint" : "etfHint", { years: etf.years, to: etf.prices_to }) +
+                    " " +
+                    t("etfWorst", {
+                      worst: etf.worst.toFixed(2).replace("-", "−"),
+                      from: etf.worst_from,
+                      to: etf.worst_to,
+                      share: etf.losing_share,
+                      since: etf.history_from.slice(0, 4),
+                    })
+                  }
+                >
+                  <span className="text-foreground tabular-nums">{etf.value.toFixed(2)}%</span>
                 </Row>
               ) : (
                 <Row label={t("investCustomRate")} htmlFor="invest">
@@ -588,6 +612,7 @@ export default function App() {
                       {t("dataRates", { date: data.rates.hibor_date })}
                       {data.rates.stale && <span className="text-warning"> {t("dataStale")}</span>}
                     </p>
+                    {data.etf_returns?.SPY && <p>{t("dataEtf", { date: data.etf_returns.SPY.prices_to })}</p>}
                     <p className="text-muted-foreground">{t("dataManual")}</p>
                   </div>
                 </Section>
