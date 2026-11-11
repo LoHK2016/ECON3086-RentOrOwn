@@ -1,0 +1,497 @@
+import { useEffect, useMemo, useState } from "react"
+import { AlertTriangle, ExternalLink } from "lucide-react"
+import { FlatPicker } from "@/components/FlatPicker"
+import { NetWorthChart } from "@/components/NetWorthChart"
+import { NumberField, Row, Section, Segmented, digits, parsed } from "@/components/grouped"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Switch } from "@/components/ui/switch"
+import { LANGUAGES, STRINGS, defaultLang, translate, type Lang } from "@/i18n"
+import { money, percent } from "@/lib/format"
+import { compareScenarios, loadCalculator } from "@/lib/python"
+import { SCENARIO_NAMES, type Estate, type Flat, type Result, type ScenarioName, type Snapshot } from "@/lib/types"
+import { cn } from "@/lib/utils"
+
+type Shift = "-1" | "0" | "1"
+
+function ProvisionalBadge({ lang }: { lang: Lang }) {
+  return (
+    <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-semibold text-warning">
+      {translate(lang, "provisional")}
+    </span>
+  )
+}
+
+export default function App() {
+  const [lang, setLang] = useState<Lang>(defaultLang)
+  const t = (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) =>
+    translate(lang, key, values)
+
+  const [data, setData] = useState<Snapshot | null>(null)
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
+  const [results, setResults] = useState<Record<ScenarioName, Result> | null>(null)
+
+  // What the user has chosen. Empty strings mean "use the typical value".
+  const [estateId, setEstateId] = useState("")
+  const [mode, setMode] = useState<"typical" | "specific">("typical")
+  const [flat, setFlat] = useState<Flat | null>(null)
+  const [area, setArea] = useState("500")
+  const [price, setPrice] = useState("")
+  const [rent, setRent] = useState("")
+  const [valuation, setValuation] = useState("")
+  const [firstTime, setFirstTime] = useState(true)
+  const [permanent, setPermanent] = useState(true)
+  const [income, setIncome] = useState("")
+  const [bank, setBank] = useState(0)
+  const [ltv, setLtv] = useState<number | null>(null)
+  const [term, setTerm] = useState(30)
+  const [shift, setShift] = useState<Shift>("0")
+  const [horizon, setHorizon] = useState(10)
+  const [invest, setInvest] = useState("")
+  const [scenario, setScenario] = useState<ScenarioName>("neutral")
+
+  useEffect(() => {
+    document.documentElement.lang = lang === "zh-Hant" ? "zh-Hant-HK" : "en"
+    document.title = STRINGS[lang].title
+    try {
+      localStorage.setItem("lang", lang)
+    } catch {
+      // Storage can be blocked; the language just won't be remembered.
+    }
+  }, [lang])
+
+  useEffect(() => {
+    const snapshot = fetch(import.meta.env.BASE_URL + "data/latest.json").then((r) => r.json())
+    Promise.all([snapshot, loadCalculator()])
+      .then(([snap]: [Snapshot, unknown]) => {
+        setData(snap)
+        setEstateId(snap.estates[0].id)
+        setStatus("ready")
+      })
+      .catch(() => setStatus("error"))
+  }, [])
+
+  const estate: Estate | undefined = data?.estates.find((e) => e.id === estateId)
+  const plan = data?.bank_plans[bank]
+
+  const inputs = useMemo(() => {
+    if (!data || !estate || !plan) return null
+    const specific = mode === "specific" && flat ? flat : null
+    return {
+      saleable_area: specific?.saleable_area ?? parsed(area),
+      price_per_ft: estate.price_per_ft,
+      rent_per_ft: estate.rent_per_ft,
+      price: parsed(price),
+      monthly_rent: parsed(rent),
+      valuation: parsed(valuation) ?? specific?.valuation,
+      first_time: firstTime,
+      monthly_income: parsed(income),
+      hibor: data.rates.hibor_1m,
+      prime: data.rates.prime,
+      hibor_spread: plan.hibor_spread,
+      prime_discount: plan.prime_discount,
+      rate_shift: Number(shift),
+      ltv: ltv === null ? undefined : ltv / 100,
+      mortgage_years: term,
+      horizon_years: horizon,
+      investment_return: parsed(invest) ?? data.investment_return.value,
+    }
+  }, [data, estate, plan, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest])
+
+  useEffect(() => {
+    if (!inputs || !data || !inputs.saleable_area) return
+    let current = true
+    compareScenarios(inputs, data.scenarios)
+      .then((next) => current && setResults(next))
+      .catch((error) => console.error(error))
+    return () => {
+      current = false
+    }
+  }, [inputs, data])
+
+  const result = results?.[scenario]
+  const used = result?.inputs
+  const districts = useMemo(() => {
+    const groups: Record<string, Estate[]> = {}
+    for (const e of data?.estates ?? []) {
+      const name = lang === "en" ? e.district_en : e.district_zh
+      groups[name] = groups[name] ?? []
+      groups[name].push(e)
+    }
+    return Object.entries(groups)
+  }, [data, lang])
+
+  function chooseEstate(id: string) {
+    setEstateId(id)
+    setFlat(null)
+    setPrice("")
+    setRent("")
+    setValuation("")
+  }
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
+        <div>
+          <h1 className="text-[34px] leading-tight font-bold tracking-tight">{t("title")}</h1>
+          <p className="mt-1 max-w-xl text-[17px] text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        <Segmented
+          label="Language"
+          value={lang}
+          onChange={setLang}
+          options={Object.entries(LANGUAGES).map(([value, label]) => ({ value: value as Lang, label }))}
+        />
+      </header>
+
+      {status === "loading" && <p className="py-24 text-center text-muted-foreground">{t("loading")}</p>}
+      {status === "error" && <p className="py-24 text-center text-destructive">{t("loadError")}</p>}
+
+      {status === "ready" && data && estate && plan && (
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+          {/* ---------- Inputs ---------- */}
+          <div className="space-y-7">
+            <Section
+              title={t("home")}
+              footer={
+                <>
+                  {t("estateFacts", {
+                    price: money(estate.price_per_ft),
+                    rent: "$" + estate.rent_per_ft.toFixed(1),
+                    tx: estate.transactions ?? "–",
+                  })}{" "}
+                  <a href={estate.source} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-primary">
+                    Midland <ExternalLink className="size-3" />
+                  </a>
+                </>
+              }
+            >
+              <Row label={t("estate")}>
+                <Select value={estateId} onValueChange={chooseEstate}>
+                  <SelectTrigger className="h-8 max-w-48 border-none bg-transparent pr-0 text-[17px] shadow-none focus-visible:ring-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {districts.map(([district, estates]) => (
+                      <SelectGroup key={district}>
+                        <SelectLabel>{district}</SelectLabel>
+                        {estates.map((e) => (
+                          <SelectItem key={e.id} value={e.id}>
+                            {lang === "en" ? e.name_en : e.name_zh}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Row>
+              <div className="py-2.5">
+                <Segmented
+                  label={t("flatMode")}
+                  value={mode}
+                  onChange={(next) => {
+                    setMode(next)
+                    setPrice("")
+                    setValuation("")
+                  }}
+                  options={[
+                    { value: "typical", label: t("typicalFlat") },
+                    { value: "specific", label: t("specificFlat") },
+                  ]}
+                />
+              </div>
+              {mode === "specific" && (
+                <FlatPicker key={estate.id} estate={estate} lang={lang} onFlat={setFlat} />
+              )}
+              {mode === "specific" && flat?.saleable_area ? (
+                <Row label={t("area")}>
+                  <span className="text-foreground tabular-nums">{flat.saleable_area}</span> {t("sqft")}
+                </Row>
+              ) : (
+                <Row label={t("area")} htmlFor="area">
+                  <NumberField id="area" value={area} onChange={setArea} suffix={t("sqft")} />
+                </Row>
+              )}
+              <Row
+                label={t("price")}
+                hint={price ? undefined : mode === "specific" && flat ? t("hsbcValuation") : t("typical")}
+                htmlFor="price"
+              >
+                <NumberField id="price" value={price} onChange={setPrice} prefix="$" placeholder={digits(used?.price)} />
+              </Row>
+              <Row label={t("rent")} hint={rent ? undefined : t("typical")} htmlFor="rent">
+                <NumberField id="rent" value={rent} onChange={setRent} prefix="$" placeholder={digits(used?.monthly_rent)} />
+              </Row>
+              <Row label={t("valuation")} hint={t("optional")} htmlFor="valuation">
+                <NumberField id="valuation" value={valuation} onChange={setValuation} prefix="$" placeholder={digits(used?.price)} />
+              </Row>
+            </Section>
+
+            <Section title={t("you")}>
+              <Row label={t("firstTime")} hint={t("firstTimeHint")}>
+                <Switch checked={firstTime} onCheckedChange={setFirstTime} className="data-[state=checked]:bg-success" aria-label={t("firstTime")} />
+              </Row>
+              <Row label={t("permanentResident")} hint={t("permanentResidentHint")}>
+                <Switch checked={permanent} onCheckedChange={setPermanent} className="data-[state=checked]:bg-success" aria-label={t("permanentResident")} />
+              </Row>
+              <Row label={t("income")} hint={t("incomeHint")} htmlFor="income">
+                <NumberField id="income" value={income} onChange={setIncome} prefix="$" placeholder="—" />
+              </Row>
+            </Section>
+
+            <Section
+              title={t("mortgage")}
+              footer={
+                used && (
+                  <span className="inline-flex flex-wrap items-center gap-1.5">
+                    {t("rateFormula", {
+                      hibor: data.rates.hibor_1m.toFixed(2),
+                      spread: plan.hibor_spread,
+                      prime: data.rates.prime.toFixed(2),
+                      discount: plan.prime_discount,
+                    })}
+                    {plan.provisional && <ProvisionalBadge lang={lang} />}
+                  </span>
+                )
+              }
+            >
+              <Row label={t("bank")}>
+                <Select value={String(bank)} onValueChange={(v) => setBank(Number(v))}>
+                  <SelectTrigger className="h-8 border-none bg-transparent pr-0 text-[17px] shadow-none focus-visible:ring-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {data.bank_plans.map((p, i) => (
+                      <SelectItem key={p.bank} value={String(i)}>
+                        {p.bank}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Row>
+              {used && (
+                <div className="space-y-3 py-3">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[17px]">{t("ltv")}</span>
+                    <span className="text-[17px] text-muted-foreground tabular-nums">{percent(used.ltv, 0)}</span>
+                  </div>
+                  <Slider
+                    min={50}
+                    max={Math.round(used.max_ltv * 100)}
+                    step={1}
+                    value={[Math.round(used.ltv * 100)]}
+                    onValueChange={([v]) => setLtv(v)}
+                    aria-label={t("ltv")}
+                  />
+                  <p className="text-[13px] text-muted-foreground">{t("ltvMax", { max: percent(used.max_ltv, 0) })}</p>
+                </div>
+              )}
+              <Row label={t("term")}>
+                <Segmented
+                  label={t("term")}
+                  value={String(term)}
+                  onChange={(v) => setTerm(Number(v))}
+                  options={["20", "25", "30"].map((v) => ({ value: v, label: v }))}
+                />
+              </Row>
+              <Row label={t("rate")}>
+                <span className="text-foreground tabular-nums">{used ? used.mortgage_rate.toFixed(2) + "%" : "–"}</span>
+              </Row>
+              <div className="space-y-2 py-3">
+                <span className="text-[15px] text-muted-foreground">{t("ratesMove")}</span>
+                <Segmented
+                  label={t("ratesMove")}
+                  value={shift}
+                  onChange={setShift}
+                  options={[
+                    { value: "-1", label: t("rateDown") },
+                    { value: "0", label: t("rateNow") },
+                    { value: "1", label: t("rateUp") },
+                  ]}
+                />
+              </div>
+            </Section>
+
+            <Section
+              title={t("assumptions")}
+              footer={
+                <span className="inline-flex flex-wrap items-center gap-1.5">
+                  {t("scenarioGrowth", {
+                    price: data.scenarios[scenario].price_growth,
+                    rent: data.scenarios[scenario].rent_growth,
+                  })}
+                  <ProvisionalBadge lang={lang} />
+                </span>
+              }
+            >
+              <div className="space-y-3 py-3">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[17px]">{t("horizon")}</span>
+                  <span className="text-[17px] text-muted-foreground tabular-nums">
+                    {horizon} {t("years")}
+                  </span>
+                </div>
+                <Slider min={1} max={30} step={1} value={[horizon]} onValueChange={([v]) => setHorizon(v)} aria-label={t("horizon")} />
+              </div>
+              <Row label={t("invest")} hint={t("investHint")} htmlFor="invest">
+                <NumberField
+                  id="invest"
+                  value={invest}
+                  onChange={setInvest}
+                  suffix="%"
+                  placeholder={String(data.investment_return.value)}
+                 
+                />
+              </Row>
+              <div className="space-y-2 py-3">
+                <span className="text-[17px]">{t("scenario")}</span>
+                <Segmented
+                  label={t("scenario")}
+                  value={scenario}
+                  onChange={setScenario}
+                  options={SCENARIO_NAMES.map((name) => ({ value: name, label: t(name) }))}
+                />
+              </div>
+            </Section>
+          </div>
+
+          {/* ---------- Results ---------- */}
+          <div className="space-y-7 lg:sticky lg:top-6 lg:self-start">
+            {result && results && used && (
+              <>
+                <div className="rounded-[var(--radius)] bg-card p-5">
+                  <p className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">{t(scenario)}</p>
+                  <p
+                    className={cn(
+                      "mt-1 text-[28px] leading-tight font-bold tracking-tight",
+                      result.verdict === "buy" ? "text-chart-1" : "text-chart-2",
+                    )}
+                  >
+                    {t(result.verdict === "buy" ? "buyWins" : "rentWins")}
+                  </p>
+                  <p className="mt-1 text-[17px]">
+                    {t("by", { gap: money(Math.abs(result.gap)), years: used.horizon_years })}
+                  </p>
+                  <p className="mt-1 text-[15px] text-muted-foreground">
+                    {result.break_even_year !== null
+                      ? t("breakEven", { year: result.break_even_year })
+                      : t("neverBreakEven", { years: used.horizon_years })}
+                  </p>
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    {SCENARIO_NAMES.map((name) => {
+                      const r = results[name]
+                      return (
+                        <button
+                          key={name}
+                          onClick={() => setScenario(name)}
+                          className={cn(
+                            "rounded-xl bg-secondary/60 px-3 py-2 text-left transition-colors",
+                            name === scenario && "ring-2 ring-primary",
+                          )}
+                        >
+                          <div className="text-[12px] text-muted-foreground">{t(name)}</div>
+                          <div className={cn("text-[15px] font-semibold", r.verdict === "buy" ? "text-chart-1" : "text-chart-2")}>
+                            {t(r.verdict === "buy" ? "buying" : "renting")}
+                          </div>
+                          <div className="text-[12px] text-muted-foreground tabular-nums">+{money(Math.abs(r.gap))}</div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <Section
+                  title={t("netWorth")}
+                  footer={t("netWorthHint")}
+                >
+                  <div className="py-4">
+                    <div className="mb-2 flex gap-4 text-[13px]">
+                      <span className="flex items-center gap-1.5">
+                        <span className="size-2.5 rounded-full bg-chart-1" />
+                        {t("buying")}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="size-2.5 rounded-full bg-chart-2" />
+                        {t("renting")}
+                      </span>
+                    </div>
+                    <NetWorthChart result={result} lang={lang} />
+                  </div>
+                </Section>
+
+                <div className="grid gap-7 xl:grid-cols-2">
+                  <Section title={t("dayOne")}>
+                    <Row label={t("downPayment")}>{money(result.upfront.down_payment)}</Row>
+                    <Row label={t("stampDuty")}>{money(result.upfront.stamp_duty)}</Row>
+                    <Row label={t("agentFee")}>{money(result.upfront.agent_fee)}</Row>
+                    <Row label={t("legalFee")}>{money(result.upfront.legal_fee)}</Row>
+                    <Row label={<span className="inline-flex items-center gap-1.5">{t("insurance")} <ProvisionalBadge lang={lang} /></span>}>
+                      {money(result.upfront.insurance_premium)}
+                    </Row>
+                    <Row label={<span className="font-semibold">{t("cashNeeded")}</span>}>
+                      <span className="font-semibold text-foreground">{money(result.upfront.total_cash)}</span>
+                    </Row>
+                    <Row label={t("loan")}>{money(result.upfront.loan)}</Row>
+                  </Section>
+
+                  <div className="space-y-7">
+                    <Section title={t("firstYear")}>
+                      <Row label={t("repayment")}>{money(result.monthly_payment)}</Row>
+                      <Row label={t("ownerCosts")}>
+                        <span className="text-chart-1">{money(result.yearly_costs[0].owner_monthly)}</span>
+                      </Row>
+                      <Row label={t("renterCosts")}>
+                        <span className="text-chart-2">{money(result.yearly_costs[0].rent_monthly)}</span>
+                      </Row>
+                    </Section>
+                    <Section title={t("reference")}>
+                      <Row label={t("rentalYield")}>{percent(result.rental_yield, 2)}</Row>
+                      {result.debt_servicing_ratio !== null && (
+                        <Row label={t("dsr")} hint={result.dsr_too_high ? t("dsrTooHigh") : undefined}>
+                          <span className={cn(result.dsr_too_high && "text-destructive")}>
+                            {result.dsr_too_high && <AlertTriangle className="mr-1 inline size-4" />}
+                            {percent(result.debt_servicing_ratio, 0)}
+                          </span>
+                        </Row>
+                      )}
+                    </Section>
+                  </div>
+                </div>
+
+                <Section title={t("limitsTitle")}>
+                  <ul className="list-disc space-y-1.5 py-3 pl-4 text-[15px] leading-snug">
+                    {STRINGS[lang].limits.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </Section>
+
+                <Section title={t("dataTitle")}>
+                  <div className="space-y-1.5 py-3 text-[15px] leading-snug">
+                    <p>{t("dataEstate", { date: data.date })}</p>
+                    <p>{t("dataHsbc")}</p>
+                    <p>
+                      {t("dataRates", { date: data.rates.hibor_date })}
+                      {data.rates.stale && <span className="text-warning"> {t("dataStale")}</span>}
+                    </p>
+                    <p className="text-muted-foreground">{t("dataManual")}</p>
+                  </div>
+                </Section>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <footer className="mt-12 text-center text-[13px] text-muted-foreground">{t("footer")}</footer>
+    </div>
+  )
+}

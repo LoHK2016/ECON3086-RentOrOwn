@@ -1,0 +1,15 @@
+[project]
+name = "rentorbuy"
+version = "0.1.0"
+description = "Compare buying a Hong Kong home with renting it"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32",
+    "beautifulsoup4>=4.12",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv]
+package = false

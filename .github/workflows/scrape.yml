@@ -1,0 +1,34 @@
+# Every morning: scrape estate prices and rates, save the snapshot, and redeploy.
+name: Daily scrape
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # 09:00 Hong Kong time
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Scrape
+        run: uv run python -m rentorbuy.scrapers.daily
+      - name: Commit the new snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git commit -m "Daily data snapshot $(date -u +%F)"
+            git push
+            gh workflow run deploy.yml --ref main
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}

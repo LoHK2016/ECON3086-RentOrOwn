@@ -1,0 +1,60 @@
+{
+  "_note": "Entered by hand. Every value marked provisional must be replaced by the Finance team before the presentation.",
+  "bank_plans": [
+    {
+      "bank": "HSBC",
+      "hibor_spread": 1.3,
+      "prime_discount": 1.75,
+      "provisional": true,
+      "source": "Key Facts Statement (to be checked)"
+    },
+    {
+      "bank": "Hang Seng",
+      "hibor_spread": 1.3,
+      "prime_discount": 1.75,
+      "provisional": true,
+      "source": "Key Facts Statement (to be checked)"
+    },
+    {
+      "bank": "BOCHK",
+      "hibor_spread": 1.3,
+      "prime_discount": 1.75,
+      "provisional": true,
+      "source": "Key Facts Statement (to be checked)"
+    },
+    {
+      "bank": "Standard Chartered",
+      "hibor_spread": 1.3,
+      "prime_discount": 1.75,
+      "provisional": true,
+      "source": "Key Facts Statement (to be checked)"
+    }
+  ],
+  "scenarios": {
+    "_provisional": "To be derived from RVD price and rent indices (his_data_3/4.xls) by the backtest.",
+    "pessimistic": {
+      "price_growth": -2.0,
+      "rent_growth": 0.0
+    },
+    "neutral": {
+      "price_growth": 2.0,
+      "rent_growth": 2.0
+    },
+    "optimistic": {
+      "price_growth": 5.0,
+      "rent_growth": 3.5
+    }
+  },
+  "investment_return": {
+    "value": 2.0,
+    "provisional": true,
+    "_note": "Board 12-month HKD time-deposit rates were 0.15% on 2026-11-11; new-money promotional rates are higher. To be decided."
+  },
+  "fallback_rates": {
+    "_note": "Read from the HKMA API on 2026-11-11; used only if the API fails before any snapshot exists.",
+    "hibor_1m": 2.59452,
+    "hibor_date": "2026-11-11",
+    "prime": 5.0,
+    "prime_since": "2025-10-31"
+  }
+}

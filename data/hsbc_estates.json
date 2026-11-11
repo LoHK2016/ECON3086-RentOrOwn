@@ -1,0 +1,164 @@
+{
+  "E00024": {
+    "zoneId": "1",
+    "districtId": "3",
+    "estateId": "210",
+    "name": "太古城"
+  },
+  "E00025": {
+    "zoneId": "1",
+    "districtId": "3",
+    "estateId": "300",
+    "name": "康怡花園"
+  },
+  "E00023": {
+    "zoneId": "1",
+    "districtId": "1",
+    "estateId": "1918",
+    "name": "杏花邨"
+  },
+  "E00021": {
+    "zoneId": "1",
+    "districtId": "13",
+    "estateId": "229",
+    "name": "海怡半島"
+  },
+  "E12477": {
+    "zoneId": "1",
+    "districtId": "1",
+    "estateId": "2037",
+    "name": "藍灣半島"
+  },
+  "E00061": {
+    "zoneId": "2",
+    "districtId": "30",
+    "estateId": "684",
+    "name": "美孚新邨"
+  },
+  "E00037": {
+    "zoneId": "2",
+    "districtId": "22",
+    "estateId": "239",
+    "name": "黃埔花園"
+  },
+  "E00053": {
+    "zoneId": "2",
+    "districtId": "15",
+    "estateId": "238",
+    "name": "麗港城"
+  },
+  "E00054": {
+    "zoneId": "2",
+    "districtId": "46",
+    "estateId": "477",
+    "name": "匯景花園"
+  },
+  "E00055": {
+    "zoneId": "2",
+    "districtId": "17",
+    "estateId": "263",
+    "name": "淘大花園"
+  },
+  "E00056": {
+    "zoneId": "2",
+    "districtId": "18",
+    "estateId": "234",
+    "name": "德福花園"
+  },
+  "E12424": {
+    "zoneId": "2",
+    "districtId": "26",
+    "estateId": "2055",
+    "name": "柏景灣"
+  },
+  "E12827": {
+    "zoneId": "2",
+    "districtId": "29",
+    "estateId": "2373",
+    "name": "擎天半島"
+  },
+  "E00012": {
+    "zoneId": "3",
+    "districtId": "38",
+    "estateId": "2388",
+    "name": "沙田第一城"
+  },
+  "E00007": {
+    "zoneId": "3",
+    "districtId": "33",
+    "estateId": "262",
+    "name": "新港城"
+  },
+  "E12139": {
+    "zoneId": "3",
+    "districtId": "33",
+    "estateId": "681",
+    "name": "翠擁華庭"
+  },
+  "E00072": {
+    "zoneId": "3",
+    "districtId": "37",
+    "estateId": "682",
+    "name": "大埔中心"
+  },
+  "E00039": {
+    "zoneId": "3",
+    "districtId": "39",
+    "estateId": "216",
+    "name": "荃灣中心"
+  },
+  "E00722": {
+    "zoneId": "3",
+    "districtId": "39",
+    "estateId": "254",
+    "name": "愉景新城"
+  },
+  "E11803": {
+    "zoneId": "3",
+    "districtId": "40",
+    "estateId": "240",
+    "name": "盈翠半島"
+  },
+  "E00041": {
+    "zoneId": "3",
+    "districtId": "42",
+    "estateId": "202",
+    "name": "嘉湖山莊"
+  },
+  "E000000070": {
+    "zoneId": "3",
+    "districtId": "44",
+    "estateId": "2488",
+    "name": "映灣園"
+  },
+  "E00091": {
+    "zoneId": "3",
+    "districtId": "43",
+    "estateId": "424",
+    "name": "屯門市廣場"
+  },
+  "E00142": {
+    "zoneId": "3",
+    "districtId": "34",
+    "estateId": "352",
+    "name": "新都城"
+  },
+  "E12822": {
+    "zoneId": "3",
+    "districtId": "34",
+    "estateId": "2400",
+    "name": "將軍澳中心"
+  },
+  "E12480": {
+    "zoneId": "3",
+    "districtId": "34",
+    "estateId": "1719",
+    "name": "維景灣畔"
+  },
+  "E000004419": {
+    "zoneId": "3",
+    "districtId": "34",
+    "estateId": "2646",
+    "name": "日出康城"
+  }
+}
