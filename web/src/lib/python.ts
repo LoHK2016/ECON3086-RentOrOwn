@@ -33,9 +33,10 @@ async function start(): Promise<Pyodide> {
   await loadScript(PYODIDE_URL + "pyodide.js")
   const pyodide = await window.loadPyodide!({ indexURL: PYODIDE_URL })
   const base = import.meta.env.BASE_URL + "py/"
-  const files: string[] = await (await fetch(base + "files.json")).json()
+  // "no-cache": ask the server each time, so a new deploy never runs old Python.
+  const files: string[] = await (await fetch(base + "files.json", { cache: "no-cache" })).json()
   for (const file of files) {
-    const text = await (await fetch(base + file)).text()
+    const text = await (await fetch(base + file, { cache: "no-cache" })).text()
     const path = "/home/pyodide/" + file
     pyodide.FS.mkdirTree(path.slice(0, path.lastIndexOf("/")))
     pyodide.FS.writeFile(path, text)

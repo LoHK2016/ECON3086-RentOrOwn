@@ -83,7 +83,8 @@ export default function App() {
   }, [lang])
 
   useEffect(() => {
-    const snapshot = fetch(import.meta.env.BASE_URL + "data/latest.json").then((r) => r.json())
+    // "no-cache": ask the server each time, so the site never shows yesterday's data.
+    const snapshot = fetch(import.meta.env.BASE_URL + "data/latest.json", { cache: "no-cache" }).then((r) => r.json())
     Promise.all([snapshot, loadCalculator()])
       .then(([snap]: [Snapshot, unknown]) => {
         setData(snap)
