@@ -18,6 +18,9 @@ Midland answers GitHub's servers with **403 Forbidden** on every estate page; fr
 | 11 Nov 15:28 | `daily.py` from home | 27 Midland pages | all 200 |
 | 11 Nov 16:27 | `scrape.yml` on GitHub Actions | 27 Midland pages | all **403** (the scraper did not yet stop at the first one) |
 | 11 Nov 16:27 | `scrape.yml` on GitHub Actions | 2 HKMA | 200 |
+| 11 Nov 16:31 | `scrape.yml` again, after the fix | 1 Midland, 2 HKMA | Midland 403 (stopped there); HKMA HIBOR 200, prime **405** |
+
+GitHub's runners share IP addresses with many other users, so HKMA's limit may already be used up by others. `daily.py` now fetches HIBOR and prime separately, so one refusal keeps the other fresh.
 
 What we changed: `midland.scrape_all()` now stops at the first 403, 405 or 429, and `daily.py` keeps each Estate's last figures (with their date) while still saving fresh rates.
 

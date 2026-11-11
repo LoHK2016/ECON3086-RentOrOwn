@@ -26,7 +26,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "no change"
           else
-            git commit -m "Daily data snapshot $(date -u +%F)"
+            git commit -m "Daily data snapshot $(TZ=Asia/Hong_Kong date +%F)"
             git push
             gh workflow run deploy.yml --ref main
           fi

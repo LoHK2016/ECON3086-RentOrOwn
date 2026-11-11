@@ -35,13 +35,13 @@ def latest_record(url, tries=3):
         return response.json()["result"]["records"][0]
 
 
-def get_rates():
-    """Today's one-month HIBOR and the best lending (prime) rate, in % a year."""
-    hibor = latest_record(HIBOR_URL)
-    prime = latest_record(PRIME_URL)
-    return {
-        "hibor_1m": hibor["hibor_fixing_1m"],
-        "hibor_date": hibor["end_of_date"],
-        "prime": prime["best_lending_rate"],
-        "prime_since": prime["effect_date"],
-    }
+def get_hibor():
+    """Today's one-month HIBOR, in % a year."""
+    record = latest_record(HIBOR_URL)
+    return {"hibor_1m": record["hibor_fixing_1m"], "hibor_date": record["end_of_date"]}
+
+
+def get_prime():
+    """The best lending (prime) rate, in % a year, and the date it took effect."""
+    record = latest_record(PRIME_URL)
+    return {"prime": record["best_lending_rate"], "prime_since": record["effect_date"]}

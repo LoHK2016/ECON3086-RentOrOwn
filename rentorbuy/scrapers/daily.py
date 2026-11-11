@@ -5,10 +5,11 @@ the website reads. Run it with:  python -m rentorbuy.scrapers.daily
 """
 
 import json
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
-from datetime import date
-from pathlib import Path
 
 from rentorbuy.scrapers import hkma, midland
 
@@ -24,14 +25,17 @@ def last_snapshot():
 
 
 def get_rates_or_last_known(assumptions, last):
-    """Today's rates, or the last ones we saved (marked stale) if the HKMA API fails."""
-    try:
-        return hkma.get_rates()
-    except (requests.RequestException, KeyError, IndexError, ValueError) as error:
-        print("HKMA failed, using last known rates:", error)
-        rates = dict(last.get("rates") or assumptions["fallback_rates"])
-        rates["stale"] = True
-        return rates
+    """Today's HIBOR and prime rate. Any that the HKMA API fails to give keeps its
+    last saved value, and the rates are then marked stale."""
+    rates = dict(last.get("rates") or assumptions["fallback_rates"])
+    rates["stale"] = False
+    for get in [hkma.get_hibor, hkma.get_prime]:
+        try:
+            rates.update(get())
+        except (requests.RequestException, KeyError, IndexError, ValueError) as error:
+            print("HKMA failed, keeping the last known value:", error)
+            rates["stale"] = True
+    return rates
 
 
 def add_last_known_estates(scraped, last, today):
@@ -65,8 +69,9 @@ def build_snapshot():
     """Scrape everything and combine it with the hand-entered assumptions."""
     assumptions = json.loads((DATA / "manual" / "assumptions.json").read_text(encoding="utf-8"))
     last = last_snapshot()
-    today = date.today().isoformat()
+    today = datetime.now(ZoneInfo("Asia/Hong_Kong")).date().isoformat()  # GitHub's clock is UTC
     scraped = midland.scrape_all()
+    print(f"{len(scraped)} estates scraped today")
     return {
         "date": today,
         "rates": get_rates_or_last_known(assumptions, last),
@@ -90,5 +95,4 @@ if __name__ == "__main__":
     if len(snapshot["estates"]) == 0:
         raise SystemExit("no estate data at all; nothing saved")
     save(snapshot)
-    fresh = [e for e in snapshot["estates"] if e["scraped"] == snapshot["date"]]
-    print(f"saved {len(snapshot['estates'])} estates for {snapshot['date']} ({len(fresh)} scraped today)")
+    print(f"saved {len(snapshot['estates'])} estates for {snapshot['date']}")
