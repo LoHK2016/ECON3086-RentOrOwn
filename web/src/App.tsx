@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { AlertTriangle, ExternalLink } from "lucide-react"
+import { DepositRanking } from "@/components/DepositRanking"
 import { FlatPicker } from "@/components/FlatPicker"
 import { NetWorthChart } from "@/components/NetWorthChart"
 import { NumberField, Row, Section, Segmented, digits, parsed } from "@/components/grouped"
@@ -63,6 +64,8 @@ export default function App() {
   const [shift, setShift] = useState<Shift>("0")
   const [horizon, setHorizon] = useState(10)
   const [invest, setInvest] = useState("")
+  const [investMode, setInvestMode] = useState<"deposit" | "custom">("deposit")
+  const [rebate, setRebate] = useState("")
   const [scenario, setScenario] = useState<ScenarioName>("neutral")
 
   useEffect(() => {
@@ -88,6 +91,9 @@ export default function App() {
 
   const estate: Estate | undefined = data?.estates.find((e) => e.id === estateId)
   const plan = data?.bank_plans[bank]
+  // The bank's own prime if we could read it; otherwise HKMA's (Standard Chartered).
+  const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
+  const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
 
   const inputs = useMemo(() => {
     if (!data || !estate || !plan) return null
@@ -102,16 +108,17 @@ export default function App() {
       first_time: firstTime,
       monthly_income: parsed(income),
       hibor: data.rates.hibor_1m,
-      prime: data.rates.prime,
+      prime,
       hibor_spread: plan.hibor_spread,
       prime_discount: plan.prime_discount,
       rate_shift: Number(shift),
       ltv: ltv === null ? undefined : ltv / 100,
       mortgage_years: term,
       horizon_years: horizon,
-      investment_return: parsed(invest) ?? data.investment_return.value,
+      investment_return: (investMode === "custom" ? parsed(invest) : undefined) ?? data.investment_return.value,
+      cash_rebate_pct: parsed(rebate) ?? plan.cash_rebate_pct,
     }
-  }, [data, estate, plan, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest])
+  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, rebate])
 
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
@@ -288,16 +295,23 @@ export default function App() {
                     {t("rateFormula", {
                       hibor: data.rates.hibor_1m.toFixed(2),
                       spread: plan.hibor_spread,
-                      prime: data.rates.prime.toFixed(2),
+                      prime: prime.toFixed(2),
                       discount: plan.prime_discount,
-                    })}
+                    })}{" "}
+                    {bankPrime ? t("primeFromBank", { bank: plan.bank }) : t("primeFromHkma")}
                     {plan.provisional && <ProvisionalBadge lang={lang} />}
                   </span>
                 )
               }
             >
               <Row label={t("bank")}>
-                <Select value={String(bank)} onValueChange={(v) => setBank(Number(v))}>
+                <Select
+                  value={String(bank)}
+                  onValueChange={(v) => {
+                    setBank(Number(v))
+                    setRebate("")
+                  }}
+                >
                   <SelectTrigger className="h-8 border-none bg-transparent pr-0 text-[17px] shadow-none focus-visible:ring-0">
                     <SelectValue />
                   </SelectTrigger>
@@ -338,6 +352,9 @@ export default function App() {
               <Row label={t("rate")}>
                 <span className="text-foreground tabular-nums">{used ? used.mortgage_rate.toFixed(2) + "%" : "–"}</span>
               </Row>
+              <Row label={t("cashRebate")} hint={t("cashRebateHint")} htmlFor="rebate">
+                <NumberField id="rebate" value={rebate} onChange={setRebate} suffix="%" placeholder={String(plan.cash_rebate_pct)} />
+              </Row>
               <div className="space-y-2 py-3">
                 <span className="text-[15px] text-muted-foreground">{t("ratesMove")}</span>
                 <Segmented
@@ -374,16 +391,41 @@ export default function App() {
                 </div>
                 <Slider min={1} max={30} step={1} value={[horizon]} onValueChange={([v]) => setHorizon(v)} aria-label={t("horizon")} />
               </div>
-              <Row label={t("invest")} hint={t("investHint")} htmlFor="invest">
-                <NumberField
-                  id="invest"
-                  value={invest}
-                  onChange={setInvest}
-                  suffix="%"
-                  placeholder={String(data.investment_return.value)}
-                 
+              <div className="space-y-2 py-3">
+                <span className="text-[17px]">{t("invest")}</span>
+                <p className="text-[13px] leading-snug text-muted-foreground">{t("investHint")}</p>
+                <Segmented
+                  label={t("invest")}
+                  value={investMode}
+                  onChange={setInvestMode}
+                  options={[
+                    { value: "deposit", label: t("investDeposit") },
+                    { value: "custom", label: t("investCustom") },
+                  ]}
                 />
-              </Row>
+              </div>
+              {investMode === "deposit" ? (
+                <Row
+                  label={t("investDepositRate")}
+                  hint={
+                    data.investment_return.bank
+                      ? t("investDepositHint", { bank: data.investment_return.bank })
+                      : t("investFallbackHint")
+                  }
+                >
+                  <span className="text-foreground tabular-nums">{data.investment_return.value.toFixed(2)}%</span>
+                </Row>
+              ) : (
+                <Row label={t("investCustomRate")} htmlFor="invest">
+                  <NumberField
+                    id="invest"
+                    value={invest}
+                    onChange={setInvest}
+                    suffix="%"
+                    placeholder={String(data.investment_return.value)}
+                  />
+                </Row>
+              )}
               <div className="space-y-2 py-3">
                 <span className="text-[17px]">{t("scenario")}</span>
                 <Segmented
@@ -469,6 +511,11 @@ export default function App() {
                     <Row label={<span className="inline-flex items-center gap-1.5">{t("insurance")} <ProvisionalBadge lang={lang} /></span>}>
                       {money(result.upfront.insurance_premium)}
                     </Row>
+                    {result.upfront.cash_rebate > 0 && (
+                      <Row label={t("cashRebate")}>
+                        <span className="text-success">−{money(result.upfront.cash_rebate)}</span>
+                      </Row>
+                    )}
                     <Row label={<span className="font-semibold">{t("cashNeeded")}</span>}>
                       <span className="font-semibold text-foreground">{money(result.upfront.total_cash)}</span>
                     </Row>
@@ -497,6 +544,7 @@ export default function App() {
                         <span className="font-semibold text-chart-2">{money(result.yearly_costs[0].rent_monthly)}</span>
                       </Row>
                     </Section>
+                    <DepositRanking data={data} lang={lang} />
                     <Section title={t("reference")}>
                       <Row label={t("rentalYield")}>{percent(result.rental_yield, 2)}</Row>
                       {result.debt_servicing_ratio !== null && (
@@ -510,6 +558,14 @@ export default function App() {
                     </Section>
                   </div>
                 </div>
+
+                <Section title={t("howTitle")}>
+                  <ol className="list-decimal space-y-1.5 py-3 pl-5 text-[15px] leading-snug">
+                    {STRINGS[lang].how.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ol>
+                </Section>
 
                 <Section title={t("limitsTitle")}>
                   <ul className="list-disc space-y-1.5 py-3 pl-4 text-[15px] leading-snug">

@@ -11,7 +11,8 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-from rentorbuy.scrapers import hkma, midland
+from rentorbuy.calc.deposits import best_deposit, rank_all
+from rentorbuy.scrapers import banks, deposits, hkma, midland
 
 DATA = Path(__file__).resolve().parents[2] / "data"
 
@@ -56,6 +57,30 @@ def add_last_known_estates(scraped, last, today):
     return estates
 
 
+def primes_or_last_known(scraped, last, today):
+    """Each bank's prime with the date it was read; a bank not read today keeps its last value."""
+    primes = dict(last.get("bank_primes") or {})
+    for bank, prime in scraped.items():
+        primes[bank] = {"prime": prime, "date": today}
+    return primes
+
+
+def deposits_or_last_known(scraped, last, today):
+    """Each bank's deposit rates with the date read; a bank not read today keeps its last rates."""
+    found = dict(last.get("deposits") or {})
+    for bank, info in scraped.items():
+        found[bank] = dict(info, date=today)
+    return found
+
+
+def default_investment_return(found, assumptions):
+    """The best 12-month new-fund rate, or the hand-entered fallback if no bank offers 12 months."""
+    bank, rate = best_deposit(found, "12")
+    if bank is None:
+        return dict(assumptions["investment_return"])
+    return {"value": rate, "bank": bank, "months": "12", "provisional": False}
+
+
 def attach_hsbc_ids(estates):
     """Copy each Estate's HSBC ids (found by hsbc_estates.py) into it, for the flat picker."""
     path = DATA / "hsbc_estates.json"
@@ -72,13 +97,17 @@ def build_snapshot():
     today = datetime.now(ZoneInfo("Asia/Hong_Kong")).date().isoformat()  # GitHub's clock is UTC
     scraped = midland.scrape_all()
     print(f"{len(scraped)} estates scraped today")
+    found = deposits_or_last_known(deposits.get_deposit_rates(), last, today)
     return {
         "date": today,
         "rates": get_rates_or_last_known(assumptions, last),
+        "bank_primes": primes_or_last_known(banks.get_primes(), last, today),
         "estates": attach_hsbc_ids(add_last_known_estates(scraped, last, today)),
         "bank_plans": assumptions["bank_plans"],
         "scenarios": {k: v for k, v in assumptions["scenarios"].items() if not k.startswith("_")},
-        "investment_return": assumptions["investment_return"],
+        "deposits": found,
+        "deposit_ranking": rank_all(found),
+        "investment_return": default_investment_return(found, assumptions),
     }
 
 

@@ -23,6 +23,10 @@ Midland answers GitHub's servers with **403 Forbidden** on every estate page; fr
 | 12 Nov 00:36 HKT | `curl` from home, one estate page with an `Origin` header | 1 Midland | 200, but no `Access-Control-Allow-Origin`: a browser on our site cannot read Midland |
 | 12 Nov 00:37 HKT | one-off scrape of 灝景灣 from home | 1 Midland, 1 HSBC search | both 200 |
 
+| 12 Nov 00:57 HKT | `curl` from home, each bank's prime-rate page once (saved as test fixtures) | HSBC, BOCHK, Hang Seng: 1 each | all 200 |
+
+| 12 Nov 01:12 HKT | `curl` from home, each time-deposit offer page once (saved as test fixtures) | HSBC, BOCHK, Standard Chartered, Mox, eleBank JSON: 1 each | all 200 |
+
 GitHub's runners share IP addresses with many other users, so HKMA's limit may already be used up by others. `daily.py` now fetches HIBOR and prime separately, so one refusal keeps the other fresh.
 
 What we changed: `midland.scrape_all()` now stops at the first 403, 405 or 429, and `daily.py` keeps each Estate's last figures (with their date) while still saving fresh rates.

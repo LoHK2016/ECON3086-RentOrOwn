@@ -33,6 +33,7 @@ export type BankPlan = {
   bank: string
   hibor_spread: number
   prime_discount: number
+  cash_rebate_pct: number
   provisional: boolean
 }
 
@@ -43,10 +44,13 @@ export const SCENARIO_NAMES: ScenarioName[] = ["pessimistic", "neutral", "optimi
 export type Snapshot = {
   date: string
   rates: { hibor_1m: number; hibor_date: string; prime: number; stale?: boolean }
+  bank_primes?: Record<string, { prime: number; date: string }>
   estates: Estate[]
   bank_plans: BankPlan[]
   scenarios: Record<ScenarioName, Growth>
-  investment_return: { value: number; provisional: boolean }
+  investment_return: { value: number; provisional: boolean; bank?: string; months?: string }
+  deposits?: Record<string, { rates: Record<string, number>; url: string; date: string }>
+  deposit_ranking?: Record<string, { bank: string; rate: number; url: string }[]>
 }
 
 export type Result = {
@@ -77,6 +81,7 @@ export type Result = {
     agent_fee: number
     legal_fee: number
     insurance_premium: number
+    cash_rebate: number
     total_cash: number
   }
   monthly_payment: number

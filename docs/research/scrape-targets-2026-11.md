@@ -34,9 +34,23 @@ No bank's HTML states the H-plan spread, cap or cash rebate as numbers; those ar
 | HSBC | `https://www.hsbc.com.hk/investments/market-information/hk/lending-rate/` (HTML, 5.00% since 31 Oct 2025) | `https://www.hsbc.com.hk/investments/market-information/hk/deposit-rate/` (HTML) | HTML allowed, PDFs disallowed |
 | BOCHK | `https://www.bochk.com/whk/rates/hkDollarPrimeRate/hkDollarPrimeRate-enquiry.action?lang=en` (HTML, 5.00%) | `https://www.bochk.com/whk/rates/depositRates/depositRates-input.action?lang=en` (HTML) | none (404) |
 | Standard Chartered | not found | `https://www.sc.com/hk/deposits/board-rates/` (HTML; was marked "As at 5 June 2026", so may be stale) | `/hk/` allowed |
-| Hang Seng | JS-filled; JSON at `https://rbwm-api.hsbc.com.hk/pws-hk-hase-rates-papi-prod-proxy/v1/hkd-prime-rates` (not called) | `…/interest-rates` (not called) | rate paths allowed |
+| Hang Seng | JS-filled; JSON at `https://rbwm-api.hsbc.com.hk/pws-hk-hase-rates-papi-prod-proxy/v1/hkd-prime-rates` (works with a plain GET; field `rate`) | `…/interest-rates` (not called) | rate paths allowed |
 
 On 2026-11-11 HSBC, BOCHK and SC all showed HKD 3M 0.125% and 12M 0.150%.
+
+## HKD time deposits for new funds (checked 12 Nov 2026)
+
+All five read with a plain GET; parsed by `rentorbuy/scrapers/deposits.py`.
+
+| Bank | Page | Where the rates are |
+| --- | --- | --- |
+| HSBC | `https://www.hsbc.com.hk/accounts/offers/deposits/` | One table per tier and currency; HKD tables' caption says "Minimum deposit amount: HKD…". Rates are "equivalent" rates that include RewardCash. 3 and 6 months only. |
+| BOCHK | `https://www.bochk.com/en/deposits/promotion/timedeposits.html` | One table; the currency cell spans rows. No 12-month HKD rate. |
+| Standard Chartered | `https://www.sc.com/hk/deposits/online-time-deposit/` | Table headed "New funds of HKD10,000 or above". |
+| Mox | `https://mox.com/promotions/time-deposit/` | Table after "HKD New Funds Time Deposit". |
+| eleBank | `https://www.elebank.com/vendor/json/deposit_rate.json` | JSON, `rate_type` "Time Deposit Rate" (week 6 exercise). |
+
+Hang Seng's promotions depend on balance growth and are not a plain rate; ZA Bank shows rates only in its app.
 
 ## Bank property-valuation tools
 

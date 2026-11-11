@@ -34,6 +34,7 @@ DEFAULTS = {
     "hibor_spread": 1.3,  # H-plan: HIBOR + this
     "prime_discount": 1.75,  # H-plan cap: prime - this
     "rate_shift": 0.0,  # what if rates rise (+) or fall (-), in % points
+    "cash_rebate_pct": 0.0,  # the bank's cash rebate, % of the loan
     "price_growth": 2.0,  # % a year
     "rent_growth": 2.0,  # % a year
     "investment_return": 2.0,  # % a year
@@ -93,7 +94,9 @@ def compare(inputs):
     price = x["price"]
     rate = x["mortgage_rate"]
 
-    upfront = upfront_costs(price, x["valuation"], x["ltv"], x["agent_fee_pct"], x["legal_fee"])
+    upfront = upfront_costs(
+        price, x["valuation"], x["ltv"], x["agent_fee_pct"], x["legal_fee"], x["cash_rebate_pct"]
+    )
     loan = upfront["loan"]
     payment = monthly_payment(loan, rate, x["mortgage_years"])
 

@@ -108,6 +108,18 @@ def test_yearly_costs_add_up():
     assert close(first["mortgage"], result["monthly_payment"])
 
 
+def test_cash_rebate():
+    # A 2% rebate on a 3.5M loan gives back 70,000: cash needed 1,672,500 - 70,000.
+    costs = upfront_costs(5_000_000, 5_000_000, 0.70, 1.0, 10_000, cash_rebate_pct=2)
+    assert costs["cash_rebate"] == 70_000
+    assert costs["total_cash"] == 1_602_500
+    # Buying needs 70,000 less cash, so the renter also starts with 70,000 less.
+    without = no_frills(ltv=0.70, mortgage_years=10, horizon_years=1)
+    rebate = no_frills(ltv=0.70, mortgage_years=10, horizon_years=1, cash_rebate_pct=2)
+    assert close(without["rent_net_worth"][0] - rebate["rent_net_worth"][0], 70_000)
+    assert close(without["buy_net_worth"][1], rebate["buy_net_worth"][1])
+
+
 def test_home_equity():
     assert home_equity(5_000_000, 1.0, 3_000_000) == 1_950_000  # 4.95M - 3M
 

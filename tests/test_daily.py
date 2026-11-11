@@ -8,7 +8,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from rentorbuy.scrapers.daily import add_last_known_estates  # needs requests and bs4: `uv run`
+from rentorbuy.scrapers.daily import (
+    add_last_known_estates,
+    default_investment_return,
+    deposits_or_last_known,
+    primes_or_last_known,
+)  # needs requests and bs4: `uv run`
 
 LAST = {"date": "2026-11-11", "estates": [{"id": "E1", "price_per_ft": 100}, {"id": "E2", "price_per_ft": 200}]}
 
@@ -25,6 +30,27 @@ def test_everything_failed():
     estates = add_last_known_estates([], LAST, "2026-11-12")
     assert [e["scraped"] for e in estates] == ["2026-11-11", "2026-11-11"]
     assert add_last_known_estates([], {}, "2026-11-12") == []
+
+
+def test_bank_primes():
+    last = {"bank_primes": {"HSBC": {"prime": 5.25, "date": "2026-11-11"},
+                            "BOCHK": {"prime": 5.25, "date": "2026-11-11"}}}
+    # HSBC read today at 5.0; BOCHK failed, so it keeps yesterday's 5.25 and date.
+    primes = primes_or_last_known({"HSBC": 5.0}, last, "2026-11-12")
+    assert primes["HSBC"] == {"prime": 5.0, "date": "2026-11-12"}
+    assert primes["BOCHK"] == {"prime": 5.25, "date": "2026-11-11"}
+
+
+def test_deposits_and_default_return():
+    last = {"deposits": {"Mox": {"rates": {"12": 2.75}, "url": "mox", "date": "2026-11-11"}}}
+    today = {"eleBank": {"rates": {"3": 2.55, "12": 3.20}, "url": "ele"}}
+    found = deposits_or_last_known(today, last, "2026-11-12")
+    assert found["eleBank"]["date"] == "2026-11-12"
+    assert found["Mox"]["date"] == "2026-11-11"  # not read today: kept, with its old date
+    assert default_investment_return(found, {}) == {"value": 3.20, "bank": "eleBank", "months": "12", "provisional": False}
+    # No bank offers 12 months: fall back to the hand-entered value.
+    fallback = {"investment_return": {"value": 2.0, "provisional": True}}
+    assert default_investment_return({}, fallback)["value"] == 2.0
 
 
 if __name__ == "__main__":

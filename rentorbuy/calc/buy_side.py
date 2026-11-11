@@ -4,11 +4,12 @@ from rentorbuy.calc.stamp_duty import stamp_duty
 from rentorbuy.calc.mortgage import insurance_premium
 
 
-def upfront_costs(price, valuation, ltv, agent_fee_pct, legal_fee):
+def upfront_costs(price, valuation, ltv, agent_fee_pct, legal_fee, cash_rebate_pct=0):
     """Cash the buyer pays on day one, item by item.
 
     The bank lends `ltv` of the lower of the price and its valuation, so a
-    valuation below the price makes the down payment bigger.
+    valuation below the price makes the down payment bigger. Banks give back
+    a cash rebate of `cash_rebate_pct` % of the loan, which lowers the cash needed.
     """
     loan = round(min(price, valuation) * ltv)
     costs = {
@@ -18,6 +19,7 @@ def upfront_costs(price, valuation, ltv, agent_fee_pct, legal_fee):
         "agent_fee": round(price * agent_fee_pct / 100),
         "legal_fee": legal_fee,
         "insurance_premium": insurance_premium(loan, ltv),
+        "cash_rebate": round(loan * cash_rebate_pct / 100),
     }
     costs["total_cash"] = (
         costs["down_payment"]
@@ -25,6 +27,7 @@ def upfront_costs(price, valuation, ltv, agent_fee_pct, legal_fee):
         + costs["agent_fee"]
         + costs["legal_fee"]
         + costs["insurance_premium"]
+        - costs["cash_rebate"]
     )
     return costs
 

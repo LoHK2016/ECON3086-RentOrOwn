@@ -30,6 +30,8 @@ jobs:
           python tests/test_valuation.py
           python tests/test_daily.py
           python tests/test_scrapers.py
+          python tests/test_banks.py
+          python tests/test_deposits.py
       - uses: pnpm/action-setup@v4
         with:
           version: 10
