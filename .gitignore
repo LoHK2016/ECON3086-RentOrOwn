@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# The website keeps its helpers in web/src/lib; the Python rule above would hide them.
+!web/src/lib/
