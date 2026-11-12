@@ -1178,12 +1178,12 @@
     "eleBank": {
       "rates": {
         "1": 0.5,
-        "2": 1.95,
-        "3": 2.55,
+        "2": 2.05,
+        "3": 2.6,
         "4": 2.75,
-        "6": 2.9,
+        "6": 3.0,
         "9": 3.05,
-        "12": 3.2,
+        "12": 3.3,
         "18": 3.45,
         "24": 3.5,
         "36": 3.45
@@ -1201,7 +1201,7 @@
       },
       {
         "bank": "eleBank",
-        "rate": 2.55,
+        "rate": 2.6,
         "url": "https://www.elebank.com/"
       },
       {
@@ -1223,7 +1223,7 @@
     "6": [
       {
         "bank": "eleBank",
-        "rate": 2.9,
+        "rate": 3.0,
         "url": "https://www.elebank.com/"
       },
       {
@@ -1250,7 +1250,7 @@
     "12": [
       {
         "bank": "eleBank",
-        "rate": 3.2,
+        "rate": 3.3,
         "url": "https://www.elebank.com/"
       },
       {
@@ -1266,7 +1266,7 @@
     ]
   },
   "investment_return": {
-    "value": 3.2,
+    "value": 3.3,
     "bank": "eleBank",
     "months": "12",
     "provisional": false
