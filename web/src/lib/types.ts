@@ -50,6 +50,13 @@ export type Snapshot = {
   estates: Estate[]
   bank_plans: BankPlan[]
   scenarios: Record<ScenarioName, Growth>
+  market_benchmark?: {
+    source: string
+    history_from: string
+    history_to: string
+    method: string
+    observations: number
+  }
   investment_return: { value: number; provisional: boolean; bank?: string; months?: string }
   deposits?: Record<string, { rates: Record<string, number>; url: string; date: string }>
   deposit_ranking?: Record<string, { bank: string; rate: number; url: string }[]>

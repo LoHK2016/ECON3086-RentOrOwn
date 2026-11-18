@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 from rentorbuy.calc.deposits import best_deposit, rank_all
+from rentorbuy.market_benchmarks import current_benchmarks
 from rentorbuy.scrapers import banks, centaline, deposits, hkma, midland
 
 DATA = Path(__file__).resolve().parents[2] / "data"
@@ -133,13 +134,15 @@ def build_snapshot():
         print(f"{len(missing)} estates missing; trying Centaline")
         estates = use_centaline(estates, centaline.scrape_all(missing), today)
     found = deposits_or_last_known(deposits.get_deposit_rates(), last, today)
+    benchmark = current_benchmarks()
     return {
         "date": today,
         "rates": get_rates_or_last_known(assumptions, last),
         "bank_primes": primes_or_last_known(banks.get_primes(), last, today),
         "estates": attach_hsbc_ids(estates),
         "bank_plans": assumptions["bank_plans"],
-        "scenarios": {k: v for k, v in assumptions["scenarios"].items() if not k.startswith("_")},
+        "scenarios": benchmark["scenarios"],
+        "market_benchmark": benchmark,
         "deposits": found,
         "deposit_ranking": rank_all(found),
         "investment_return": default_investment_return(found, assumptions),

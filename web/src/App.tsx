@@ -16,7 +16,7 @@ import { Switch } from "@/components/ui/switch"
 import { LANGUAGES, STRINGS, defaultLang, translate, type Lang } from "@/i18n"
 import { money, percent } from "@/lib/format"
 import { compareScenarios, loadCalculator } from "@/lib/python"
-import { SCENARIO_NAMES, type Estate, type Flat, type Result, type ScenarioName, type Snapshot } from "@/lib/types"
+import { type Estate, type Flat, type Result, type ScenarioName, type Snapshot } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 type Shift = "-1" | "0" | "1"
@@ -70,7 +70,7 @@ export default function App() {
   const [invest, setInvest] = useState("")
   const [investMode, setInvestMode] = useState<InvestMode>("deposit")
   const [rebate, setRebate] = useState("")
-  const [scenario, setScenario] = useState<ScenarioName>("neutral")
+  const scenario: ScenarioName = "neutral"
 
   useEffect(() => {
     document.documentElement.lang = lang === "zh-Hant" ? "zh-Hant-HK" : "en"
@@ -386,11 +386,10 @@ export default function App() {
               title={t("assumptions")}
               footer={
                 <span className="inline-flex flex-wrap items-center gap-1.5">
-                  {t("scenarioGrowth", {
-                    price: data.scenarios[scenario].price_growth,
-                    rent: data.scenarios[scenario].rent_growth,
+                  {t("marketBenchmark", {
+                    price: data.scenarios.neutral.price_growth,
+                    rent: data.scenarios.neutral.rent_growth,
                   })}
-                  <ProvisionalBadge lang={lang} />
                 </span>
               }
             >
@@ -457,15 +456,6 @@ export default function App() {
                   />
                 </Row>
               )}
-              <div className="space-y-2 py-3">
-                <span className="text-[17px]">{t("scenario")}</span>
-                <Segmented
-                  label={t("scenario")}
-                  value={scenario}
-                  onChange={setScenario}
-                  options={SCENARIO_NAMES.map((name) => ({ value: name, label: t(name) }))}
-                />
-              </div>
             </Section>
           </div>
 
@@ -474,7 +464,7 @@ export default function App() {
             {result && results && used && (
               <>
                 <div className="rounded-[var(--radius)] bg-card p-5">
-                  <p className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">{t(scenario)}</p>
+                  <p className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">{t("marketBenchmarkLabel")}</p>
                   <p
                     className={cn(
                       "mt-1 text-[28px] leading-tight font-bold tracking-tight",
@@ -491,27 +481,6 @@ export default function App() {
                       ? t("breakEven", { year: result.break_even_year })
                       : t("neverBreakEven", { years: used.horizon_years })}
                   </p>
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    {SCENARIO_NAMES.map((name) => {
-                      const r = results[name]
-                      return (
-                        <button
-                          key={name}
-                          onClick={() => setScenario(name)}
-                          className={cn(
-                            "rounded-xl bg-secondary/60 px-3 py-2 text-left transition-colors",
-                            name === scenario && "ring-2 ring-primary",
-                          )}
-                        >
-                          <div className="text-[12px] text-muted-foreground">{t(name)}</div>
-                          <div className={cn("text-[15px] font-semibold", r.verdict === "buy" ? "text-chart-1" : "text-chart-2")}>
-                            {t(r.verdict === "buy" ? "buying" : "renting")}
-                          </div>
-                          <div className="text-[12px] text-muted-foreground tabular-nums">+{money(Math.abs(r.gap))}</div>
-                        </button>
-                      )
-                    })}
-                  </div>
                 </div>
 
                 <Section

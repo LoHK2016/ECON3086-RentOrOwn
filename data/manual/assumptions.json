@@ -35,7 +35,7 @@
     }
   ],
   "scenarios": {
-    "_provisional": "To be derived from RVD price and rent indices (his_data_3/4.xls) by the backtest.",
+    "_provisional": "Replaced by rentorbuy.market_benchmarks rolling 30-year RVD calculation.",
     "pessimistic": {
       "price_growth": -2.0,
       "rent_growth": 0.0

@@ -1128,16 +1128,16 @@
   ],
   "scenarios": {
     "pessimistic": {
-      "price_growth": -2.0,
-      "rent_growth": 0.0
+      "price_growth": -0.42,
+      "rent_growth": -0.19
     },
     "neutral": {
-      "price_growth": 2.0,
-      "rent_growth": 2.0
+      "price_growth": 8.11,
+      "rent_growth": 3.05
     },
     "optimistic": {
-      "price_growth": 5.0,
-      "rent_growth": 3.5
+      "price_growth": 12.9,
+      "rent_growth": 7.36
     }
   },
   "deposits": {
@@ -1297,6 +1297,41 @@
       "losing_share": 9,
       "history_from": "1993-01",
       "prices_to": "2026-11"
+    }
+  },
+  "market_benchmark": {
+    "source": "Hong Kong Rating and Valuation Department",
+    "source_urls": [
+      "https://www.rvd.gov.hk/datagovhk/1.4M.csv",
+      "https://www.rvd.gov.hk/datagovhk/1.3M.csv"
+    ],
+    "history_from": "1996-09",
+    "history_to": "2026-09",
+    "method": "Rolling 10-year annualized changes; 10th/50th/90th percentiles",
+    "observations": 241,
+    "price_growth": {
+      "pessimistic": -0.42,
+      "neutral": 8.11,
+      "optimistic": 12.9
+    },
+    "rent_growth": {
+      "pessimistic": -0.19,
+      "neutral": 3.05,
+      "optimistic": 7.36
+    },
+    "scenarios": {
+      "pessimistic": {
+        "price_growth": -0.42,
+        "rent_growth": -0.19
+      },
+      "neutral": {
+        "price_growth": 8.11,
+        "rent_growth": 3.05
+      },
+      "optimistic": {
+        "price_growth": 12.9,
+        "rent_growth": 7.36
+      }
     }
   }
 }
