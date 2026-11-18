@@ -59,6 +59,8 @@ export default function App() {
   const [price, setPrice] = useState("")
   const [rent, setRent] = useState("")
   const [valuation, setValuation] = useState("")
+  const [hangSengValuation, setHangSengValuation] = useState("")
+  const [bocValuation, setBocValuation] = useState("")
   const [firstTime, setFirstTime] = useState(true)
   const [permanent, setPermanent] = useState(true)
   const [income, setIncome] = useState("")
@@ -96,6 +98,11 @@ export default function App() {
 
   const estate: Estate | undefined = data?.estates.find((e) => e.id === estateId)
   const plan = data?.bank_plans[bank]
+  useEffect(() => {
+    setFlat(null)
+    setHangSengValuation("")
+    setBocValuation("")
+  }, [estateId, mode])
   // The bank's own prime if we could read it; otherwise HKMA's (Standard Chartered).
   const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
   const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
@@ -104,13 +111,20 @@ export default function App() {
   const inputs = useMemo(() => {
     if (!data || !estate || !plan) return null
     const specific = mode === "specific" && flat ? flat : null
+    const bankValuations =
+      mode === "specific"
+        ? [specific?.valuation, parsed(hangSengValuation), parsed(bocValuation)].filter(
+            (value): value is number => typeof value === "number" && value > 0,
+          )
+        : []
     return {
       saleable_area: specific?.saleable_area ?? parsed(area),
       price_per_ft: estate.price_per_ft,
       rent_per_ft: estate.rent_per_ft,
       price: parsed(price),
       monthly_rent: parsed(rent),
-      valuation: parsed(valuation) ?? specific?.valuation,
+      valuation: parsed(valuation),
+      bank_valuations: bankValuations,
       first_time: firstTime,
       monthly_income: parsed(income),
       hibor: data.rates.hibor_1m,
@@ -124,7 +138,7 @@ export default function App() {
       investment_return: (investMode === "custom" ? parsed(invest) : etf?.value) ?? data.investment_return.value,
       cash_rebate_pct: parsed(rebate) ?? plan.cash_rebate_pct,
     }
-  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
+  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, hangSengValuation, bocValuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
 
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
@@ -262,6 +276,36 @@ export default function App() {
               </div>
               {mode === "specific" && (
                 <FlatPicker key={estate.id} estate={estate} lang={lang} onFlat={setFlat} />
+              )}
+              {mode === "specific" && (
+                <>
+                  <Row label={t("hangSengValuation")} htmlFor="hang-seng-valuation">
+                    <NumberField
+                      id="hang-seng-valuation"
+                      value={hangSengValuation}
+                      onChange={setHangSengValuation}
+                      prefix="$"
+                      placeholder={t("enterBankValuation")}
+                    />
+                  </Row>
+                  <Row label={t("bocValuation")} htmlFor="boc-valuation">
+                    <NumberField
+                      id="boc-valuation"
+                      value={bocValuation}
+                      onChange={setBocValuation}
+                      prefix="$"
+                      placeholder={t("enterBankValuation")}
+                    />
+                  </Row>
+                  {flat && <Row label={t("averageValuation")}><span className="font-semibold text-foreground">
+                    {(() => {
+                      const values = [flat.valuation, parsed(hangSengValuation), parsed(bocValuation)].filter(
+                        (value): value is number => typeof value === "number" && value > 0,
+                      )
+                      return money(values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0)
+                    })()}
+                  </span></Row>}
+                </>
               )}
               {mode === "specific" && flat?.saleable_area ? (
                 <Row label={t("area")}>

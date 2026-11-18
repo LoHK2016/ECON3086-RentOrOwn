@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from rentorbuy.valuation import (
     HsbcError,
     LOOKUP_URL,
+    average_valuations,
     call_with_retry,
     get_options,
     get_valuation,
@@ -85,6 +86,11 @@ def test_parse_valuation():
         assert False, "should have raised"
     except HsbcError:
         pass
+
+
+def test_average_valuations():
+    assert average_valuations([18_000_000, 18_500_000, None]) == 18_250_000
+    assert average_valuations([18_000_000, 0, 19_000_000]) == 18_500_000
 
 
 def test_parse_search():

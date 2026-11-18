@@ -16,6 +16,7 @@ from rentorbuy.calc.mortgage import (
 )
 from rentorbuy.calc.buy_side import upfront_costs, monthly_holding_costs, home_equity
 from rentorbuy.calc.rent_side import rent_for_year, grow_one_month
+from rentorbuy.valuation import average_valuations
 
 DEFAULTS = {
     "saleable_area": None,  # square feet (required)
@@ -24,6 +25,7 @@ DEFAULTS = {
     "price_per_ft": None,  # the Estate's typical price per sq ft
     "rent_per_ft": None,  # the Estate's typical monthly rent per sq ft
     "valuation": None,  # Bank Valuation, HK$; None means same as the price
+    "bank_valuations": None,  # HSBC, Hang Seng and BOCHK valuations; average of the available values
     "horizon_years": 10,
     "first_time": True,  # owns no other HK home and is salaried
     "ltv": None,  # loan-to-value, e.g. 0.8; None (or too high) means the highest allowed
@@ -58,6 +60,8 @@ def fill_defaults(inputs):
         if value is not None:
             filled[key] = value
     area = filled["saleable_area"]
+    if filled["valuation"] is None and filled["bank_valuations"]:
+        filled["valuation"] = average_valuations(filled["bank_valuations"])
     if filled["price"] is None and filled["valuation"]:
         filled["price"] = filled["valuation"]  # a specific Flat: expect to pay what the bank says
     if filled["price"] is None and filled["price_per_ft"] and area:

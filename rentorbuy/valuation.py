@@ -37,6 +37,14 @@ class HsbcError(Exception):
     """HSBC did not give an answer we can use."""
 
 
+def average_valuations(values):
+    """Return the average of the supplied bank valuations, rounded to HK dollars."""
+    available = [int(value) for value in values if value is not None and int(value) > 0]
+    if not available:
+        raise ValueError("at least one bank valuation is required")
+    return round(sum(available) / len(available))
+
+
 def lookup_request(chosen, locale):
     """Request body asking for the choices below the deepest level in `chosen`.
 

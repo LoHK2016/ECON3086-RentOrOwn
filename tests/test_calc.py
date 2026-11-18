@@ -232,6 +232,14 @@ def test_price_defaults_to_valuation():
     assert result["inputs"]["monthly_rent"] == 52_716  # 46 x 1,146
 
 
+def test_price_defaults_to_average_bank_valuations():
+    result = compare({"saleable_area": 1146, "price_per_ft": 16_000, "rent_per_ft": 46,
+                      "bank_valuations": [18_000_000, 18_500_000, 19_000_000],
+                      "mortgage_rate": 3})
+    assert result["inputs"]["valuation"] == 18_500_000
+    assert result["inputs"]["price"] == 18_500_000
+
+
 def test_missing_input():
     try:
         compare({"price": 5_000_000})
