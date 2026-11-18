@@ -153,19 +153,27 @@ def mean_reverting_forecast(values, horizon_months=120):
 
 
 def mean_reverting_forecasts(price_values, rent_values):
-    """Return separate 10-year mean-reverting forecasts for price and rent indices."""
+    """Return separate 10-, 20- and 30-year mean-reverting forecasts."""
     latest = max(price_values[-1][0], rent_values[-1][0])
     cutoff = datetime(latest.year - 30, latest.month, 1)
     price = [(month, index) for month, index in price_values if month >= cutoff]
     rent = [(month, index) for month, index in rent_values if month >= cutoff]
+    horizons = {}
+    for years in (10, 20, 30):
+        horizons[str(years)] = {
+            "price": mean_reverting_forecast(price, years * 12),
+            "rent": mean_reverting_forecast(rent, years * 12),
+        }
+    ten = horizons["10"]
     return {
         "source": "Hong Kong Rating and Valuation Department",
         "source_urls": [PRICE_URL, RENT_URL],
         "history_from": cutoff.strftime("%Y-%m"),
         "history_to": latest.strftime("%Y-%m"),
-        "method": "Independent mean-reverting AR(1) models with linear trend; 10-year forecasts",
-        "price": mean_reverting_forecast(price),
-        "rent": mean_reverting_forecast(rent),
+        "method": "Independent mean-reverting AR(1) models with linear trend; 10-, 20- and 30-year forecasts",
+        "horizons": horizons,
+        "price": ten["price"],
+        "rent": ten["rent"],
     }
 
 
@@ -177,19 +185,20 @@ def fetch_benchmarks():
     forecast = mean_reverting_forecasts(price, rent)
     historical["forecast"] = forecast
     historical["arima"] = forecast
-    historical["method"] = "Independent mean-reverting AR(1) linear-trend 10-year forecasts"
+    historical["method"] = "Independent mean-reverting AR(1) linear-trend 10-, 20- and 30-year forecasts"
+    ten = forecast["horizons"]["10"]
     historical["scenarios"] = {
         "pessimistic": {
-            "price_growth": forecast["price"]["intervals_pct"]["95%"][0],
-            "rent_growth": forecast["rent"]["intervals_pct"]["95%"][0],
+            "price_growth": ten["price"]["intervals_pct"]["95%"][0],
+            "rent_growth": ten["rent"]["intervals_pct"]["95%"][0],
         },
         "neutral": {
-            "price_growth": forecast["price"]["point_growth_pct"],
-            "rent_growth": forecast["rent"]["point_growth_pct"],
+            "price_growth": ten["price"]["point_growth_pct"],
+            "rent_growth": ten["rent"]["point_growth_pct"],
         },
         "optimistic": {
-            "price_growth": forecast["price"]["intervals_pct"]["95%"][1],
-            "rent_growth": forecast["rent"]["intervals_pct"]["95%"][1],
+            "price_growth": ten["price"]["intervals_pct"]["95%"][1],
+            "rent_growth": ten["rent"]["intervals_pct"]["95%"][1],
         },
     }
     return historical

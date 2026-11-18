@@ -6,7 +6,7 @@
   ],
   "history_from": "1996-09",
   "history_to": "2026-09",
-  "method": "Independent mean-reverting AR(1) linear-trend 10-year forecasts",
+  "method": "Independent mean-reverting AR(1) linear-trend 10-, 20- and 30-year forecasts",
   "price_growth": {
     "pessimistic": -0.42,
     "neutral": 8.11,
@@ -25,7 +25,117 @@
     ],
     "history_from": "1996-09",
     "history_to": "2026-09",
-    "method": "Independent mean-reverting AR(1) models with linear trend; 10-year forecasts",
+    "method": "Independent mean-reverting AR(1) models with linear trend; 10-, 20- and 30-year forecasts",
+    "horizons": {
+      "10": {
+        "price": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 10,
+          "point_growth_pct": 3.78,
+          "intervals_pct": {
+            "80%": [
+              1.21,
+              6.41
+            ],
+            "95%": [
+              -0.13,
+              7.84
+            ]
+          },
+          "observations": 361
+        },
+        "rent": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 10,
+          "point_growth_pct": 1.78,
+          "intervals_pct": {
+            "80%": [
+              0.17,
+              3.41
+            ],
+            "95%": [
+              -0.67,
+              4.29
+            ]
+          },
+          "observations": 361
+        }
+      },
+      "20": {
+        "price": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 20,
+          "point_growth_pct": 3.77,
+          "intervals_pct": {
+            "80%": [
+              2.3,
+              5.26
+            ],
+            "95%": [
+              1.53,
+              6.06
+            ]
+          },
+          "observations": 361
+        },
+        "rent": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 20,
+          "point_growth_pct": 1.8,
+          "intervals_pct": {
+            "80%": [
+              0.82,
+              2.8
+            ],
+            "95%": [
+              0.3,
+              3.33
+            ]
+          },
+          "observations": 361
+        }
+      },
+      "30": {
+        "price": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 30,
+          "point_growth_pct": 3.76,
+          "intervals_pct": {
+            "80%": [
+              2.75,
+              4.78
+            ],
+            "95%": [
+              2.22,
+              5.33
+            ]
+          },
+          "observations": 361
+        },
+        "rent": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 30,
+          "point_growth_pct": 1.82,
+          "intervals_pct": {
+            "80%": [
+              1.11,
+              2.54
+            ],
+            "95%": [
+              0.74,
+              2.92
+            ]
+          },
+          "observations": 361
+        }
+      }
+    },
     "price": {
       "model": "AR1-linear-trend",
       "trend": "ct",
@@ -69,7 +179,117 @@
     ],
     "history_from": "1996-09",
     "history_to": "2026-09",
-    "method": "Independent mean-reverting AR(1) models with linear trend; 10-year forecasts",
+    "method": "Independent mean-reverting AR(1) models with linear trend; 10-, 20- and 30-year forecasts",
+    "horizons": {
+      "10": {
+        "price": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 10,
+          "point_growth_pct": 3.78,
+          "intervals_pct": {
+            "80%": [
+              1.21,
+              6.41
+            ],
+            "95%": [
+              -0.13,
+              7.84
+            ]
+          },
+          "observations": 361
+        },
+        "rent": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 10,
+          "point_growth_pct": 1.78,
+          "intervals_pct": {
+            "80%": [
+              0.17,
+              3.41
+            ],
+            "95%": [
+              -0.67,
+              4.29
+            ]
+          },
+          "observations": 361
+        }
+      },
+      "20": {
+        "price": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 20,
+          "point_growth_pct": 3.77,
+          "intervals_pct": {
+            "80%": [
+              2.3,
+              5.26
+            ],
+            "95%": [
+              1.53,
+              6.06
+            ]
+          },
+          "observations": 361
+        },
+        "rent": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 20,
+          "point_growth_pct": 1.8,
+          "intervals_pct": {
+            "80%": [
+              0.82,
+              2.8
+            ],
+            "95%": [
+              0.3,
+              3.33
+            ]
+          },
+          "observations": 361
+        }
+      },
+      "30": {
+        "price": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 30,
+          "point_growth_pct": 3.76,
+          "intervals_pct": {
+            "80%": [
+              2.75,
+              4.78
+            ],
+            "95%": [
+              2.22,
+              5.33
+            ]
+          },
+          "observations": 361
+        },
+        "rent": {
+          "model": "AR1-linear-trend",
+          "trend": "ct",
+          "horizon_years": 30,
+          "point_growth_pct": 1.82,
+          "intervals_pct": {
+            "80%": [
+              1.11,
+              2.54
+            ],
+            "95%": [
+              0.74,
+              2.92
+            ]
+          },
+          "observations": 361
+        }
+      }
+    },
     "price": {
       "model": "AR1-linear-trend",
       "trend": "ct",

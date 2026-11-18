@@ -6,7 +6,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from rentorbuy.market_benchmarks import derive_benchmarks, mean_reverting_forecast, percentile
+from rentorbuy.market_benchmarks import derive_benchmarks, mean_reverting_forecast, mean_reverting_forecasts, percentile
 
 
 def test_percentile_is_interpolated():
@@ -38,6 +38,17 @@ def test_mean_reverting_forecast_returns_point_and_intervals():
     assert "80%" in result["intervals_pct"]
     assert "95%" in result["intervals_pct"]
     assert isinstance(result["point_growth_pct"], (int, float))
+
+
+def test_mean_reverting_forecasts_have_three_horizons():
+    values = []
+    for year in range(1996, 2027):
+        for month in (1, 7):
+            age = (year - 1996) * 12 + month - 1
+            values.append((datetime(year, month, 1), 100 * (1.002 ** age)))
+    result = mean_reverting_forecasts(values, values)
+    assert set(result["horizons"]) == {"10", "20", "30"}
+    assert all(result["horizons"][str(year)]["price"]["horizon_years"] == year for year in (10, 20, 30))
 
 
 if __name__ == "__main__":

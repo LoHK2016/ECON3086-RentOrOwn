@@ -11,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
+import { Slider } from "@/components/ui/slider"
 import { LANGUAGES, STRINGS, defaultLang, translate, type Lang } from "@/i18n"
 import { money, percent } from "@/lib/format"
 import { compareScenarios, loadCalculator } from "@/lib/python"
@@ -100,6 +100,25 @@ export default function App() {
   const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
   const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
   const etf = investMode === "hk" || investMode === "us" ? data?.etf_returns?.[ETF_TICKER[investMode]] : undefined
+  const forecastScenarios = useMemo(() => {
+    if (!data) return null
+    const horizonForecast = data.market_benchmark?.arima?.horizons?.[String(horizon)]
+    if (!horizonForecast) return data.scenarios
+    return {
+      pessimistic: {
+        price_growth: horizonForecast.price.intervals_pct["95%"][0],
+        rent_growth: horizonForecast.rent.intervals_pct["95%"][0],
+      },
+      neutral: {
+        price_growth: horizonForecast.price.point_growth_pct,
+        rent_growth: horizonForecast.rent.point_growth_pct,
+      },
+      optimistic: {
+        price_growth: horizonForecast.price.intervals_pct["95%"][1],
+        rent_growth: horizonForecast.rent.intervals_pct["95%"][1],
+      },
+    }
+  }, [data, horizon])
 
   const inputs = useMemo(() => {
     if (!data || !estate || !plan) return null
@@ -129,13 +148,14 @@ export default function App() {
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
     let current = true
-    compareScenarios(inputs, data.scenarios)
+    if (!forecastScenarios) return
+    compareScenarios(inputs, forecastScenarios)
       .then((next) => current && setResults(next))
       .catch((error) => console.error(error))
     return () => {
       current = false
     }
-  }, [inputs, data])
+  }, [inputs, data, forecastScenarios])
 
   const result = results?.[scenario]
   const used = result?.inputs
@@ -386,25 +406,33 @@ export default function App() {
               title={t("assumptions")}
               footer={
                 <span className="inline-flex flex-wrap items-center gap-1.5">
-                  {t("marketBenchmark", {
-                    price: data.market_benchmark?.arima?.price.point_growth_pct ?? data.scenarios.neutral.price_growth,
-                    rent: data.market_benchmark?.arima?.rent.point_growth_pct ?? data.scenarios.neutral.rent_growth,
-                    priceLow: data.market_benchmark?.arima?.price.intervals_pct["95%"][0] ?? data.scenarios.pessimistic.price_growth,
-                    priceHigh: data.market_benchmark?.arima?.price.intervals_pct["95%"][1] ?? data.scenarios.optimistic.price_growth,
-                    rentLow: data.market_benchmark?.arima?.rent.intervals_pct["95%"][0] ?? data.scenarios.pessimistic.rent_growth,
-                    rentHigh: data.market_benchmark?.arima?.rent.intervals_pct["95%"][1] ?? data.scenarios.optimistic.rent_growth,
-                  })}
+                  {(() => {
+                    const selected = data.market_benchmark?.arima?.horizons?.[String(horizon)]
+                      ?? data.market_benchmark?.arima?.horizons?.["10"]
+                    return t("marketBenchmark", {
+                      years: horizon,
+                      price: selected?.price?.point_growth_pct ?? data.scenarios.neutral.price_growth,
+                      rent: selected?.rent?.point_growth_pct ?? data.scenarios.neutral.rent_growth,
+                      priceLow: selected?.price?.intervals_pct["95%"][0] ?? data.scenarios.pessimistic.price_growth,
+                      priceHigh: selected?.price?.intervals_pct["95%"][1] ?? data.scenarios.optimistic.price_growth,
+                      rentLow: selected?.rent?.intervals_pct["95%"][0] ?? data.scenarios.pessimistic.rent_growth,
+                      rentHigh: selected?.rent?.intervals_pct["95%"][1] ?? data.scenarios.optimistic.rent_growth,
+                    })
+                  })()}
                 </span>
               }
             >
-              <div className="space-y-3 py-3">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-[17px]">{t("horizon")}</span>
-                  <span className="text-[17px] text-muted-foreground tabular-nums">
-                    {horizon} {t("years")}
-                  </span>
-                </div>
-                <Slider min={1} max={30} step={1} value={[horizon]} onValueChange={([v]) => setHorizon(v)} aria-label={t("horizon")} />
+              <div className="space-y-2 py-3">
+                <span className="text-[17px]">{t("horizon")}</span>
+                <Segmented
+                  label={t("horizon")}
+                  value={String(horizon)}
+                  onChange={(value) => setHorizon(Number(value))}
+                  options={[10, 20, 30].map((years) => ({
+                    value: String(years),
+                    label: `${years} ${t("years")}`,
+                  }))}
+                />
               </div>
               <div className="space-y-2 py-3">
                 <span className="text-[17px]">{t("invest")}</span>

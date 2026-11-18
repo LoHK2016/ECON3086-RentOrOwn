@@ -57,6 +57,22 @@ export type Snapshot = {
     method: string
     observations: number
     arima?: {
+      horizons?: Record<string, {
+        price: {
+          model: string
+          trend?: string
+          horizon_years: number
+          point_growth_pct: number
+          intervals_pct: Record<"80%" | "95%", [number, number]>
+        }
+        rent: {
+          model: string
+          trend?: string
+          horizon_years: number
+          point_growth_pct: number
+          intervals_pct: Record<"80%" | "95%", [number, number]>
+        }
+      }>
       price: {
         model: string
         trend?: string
