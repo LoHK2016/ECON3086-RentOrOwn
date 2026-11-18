@@ -111,6 +111,10 @@ const en = {
   netWorthHint: "If you sold the home at the end, after paying off the mortgage.",
   buying: "Buying",
   renting: "Renting",
+  buyingRange: "Buying · 95% range",
+  rentingRange: "Renting · 95% range",
+  forecastRange95: "95% model forecast range",
+  rangeLegend: "Solid lines show point forecasts. Shaded areas show the 95% forecast range for buying and renting net worth.",
   year: "Year {n}",
 
   dayOne: "Day one",
@@ -277,6 +281,10 @@ const zhHant: Strings = {
   netWorthHint: "假設最後賣出單位、還清按揭後計。",
   buying: "買樓",
   renting: "租樓",
+  buyingRange: "買樓 · 95% 區間",
+  rentingRange: "租樓 · 95% 區間",
+  forecastRange95: "95% 模型預測區間",
+  rangeLegend: "實線代表點預測；藍色／綠色區域代表買樓及租樓淨資產的95%預測區間。",
   year: "第 {n} 年",
 
   dayOne: "上會當日",

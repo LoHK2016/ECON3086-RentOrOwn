@@ -527,13 +527,16 @@ export default function App() {
                     <div className="mb-2 flex gap-4 text-[13px]">
                       <span className="flex items-center gap-1.5">
                         <span className="size-2.5 rounded-full bg-chart-1" />
-                        {t("buying")}
+                        {t("buyingRange")}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <span className="size-2.5 rounded-full bg-chart-2" />
-                        {t("renting")}
+                        {t("rentingRange")}
                       </span>
                     </div>
+                    <p className="mb-2 text-[12px] leading-snug text-muted-foreground">
+                      {t("rangeLegend")}
+                    </p>
                     <NetWorthChart
                       point={results.neutral}
                       low={results.pessimistic}
