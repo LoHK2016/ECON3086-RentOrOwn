@@ -59,8 +59,8 @@ export default function App() {
   const [price, setPrice] = useState("")
   const [rent, setRent] = useState("")
   const [valuation, setValuation] = useState("")
-  const [hangSengValuation, setHangSengValuation] = useState("")
-  const [bocValuation, setBocValuation] = useState("")
+  const [beaValuation, setBeaValuation] = useState("")
+  const [dahSingValuation, setDahSingValuation] = useState("")
   const [firstTime, setFirstTime] = useState(true)
   const [permanent, setPermanent] = useState(true)
   const [income, setIncome] = useState("")
@@ -100,8 +100,8 @@ export default function App() {
   const plan = data?.bank_plans[bank]
   useEffect(() => {
     setFlat(null)
-    setHangSengValuation("")
-    setBocValuation("")
+    setBeaValuation("")
+    setDahSingValuation("")
   }, [estateId, mode])
   // The bank's own prime if we could read it; otherwise HKMA's (Standard Chartered).
   const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
@@ -113,7 +113,7 @@ export default function App() {
     const specific = mode === "specific" && flat ? flat : null
     const bankValuations =
       mode === "specific"
-        ? [specific?.valuation, parsed(hangSengValuation), parsed(bocValuation)].filter(
+        ? [specific?.valuation, parsed(beaValuation), parsed(dahSingValuation)].filter(
             (value): value is number => typeof value === "number" && value > 0,
           )
         : []
@@ -138,7 +138,7 @@ export default function App() {
       investment_return: (investMode === "custom" ? parsed(invest) : etf?.value) ?? data.investment_return.value,
       cash_rebate_pct: parsed(rebate) ?? plan.cash_rebate_pct,
     }
-  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, hangSengValuation, bocValuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
+  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, beaValuation, dahSingValuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
 
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
@@ -279,27 +279,59 @@ export default function App() {
               )}
               {mode === "specific" && (
                 <>
-                  <Row label={t("hangSengValuation")} htmlFor="hang-seng-valuation">
+                  <Row
+                    label={
+                      <span className="flex items-center gap-2">
+                        {t("beaValuation")}
+                        <a
+                          href="https://www.hkbea-cyberbanking.com/ibk6/loan/property/valuation/pub/input?Lang=Big5"
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={t("openBankValuation")}
+                          className="text-primary"
+                        >
+                          <ExternalLink className="size-3.5" />
+                        </a>
+                      </span>
+                    }
+                    htmlFor="bea-valuation"
+                  >
                     <NumberField
-                      id="hang-seng-valuation"
-                      value={hangSengValuation}
-                      onChange={setHangSengValuation}
+                      id="bea-valuation"
+                      value={beaValuation}
+                      onChange={setBeaValuation}
                       prefix="$"
                       placeholder={t("enterBankValuation")}
                     />
                   </Row>
-                  <Row label={t("bocValuation")} htmlFor="boc-valuation">
+                  <Row
+                    label={
+                      <span className="flex items-center gap-2">
+                        {t("dahSingValuation")}
+                        <a
+                          href="https://www.dahsing.com/jsp/evaluation_1.jsp?lang=1"
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={t("openBankValuation")}
+                          className="text-primary"
+                        >
+                          <ExternalLink className="size-3.5" />
+                        </a>
+                      </span>
+                    }
+                    htmlFor="dah-sing-valuation"
+                  >
                     <NumberField
-                      id="boc-valuation"
-                      value={bocValuation}
-                      onChange={setBocValuation}
+                      id="dah-sing-valuation"
+                      value={dahSingValuation}
+                      onChange={setDahSingValuation}
                       prefix="$"
                       placeholder={t("enterBankValuation")}
                     />
                   </Row>
                   {flat && <Row label={t("averageValuation")}><span className="font-semibold text-foreground">
                     {(() => {
-                      const values = [flat.valuation, parsed(hangSengValuation), parsed(bocValuation)].filter(
+                      const values = [flat.valuation, parsed(beaValuation), parsed(dahSingValuation)].filter(
                         (value): value is number => typeof value === "number" && value > 0,
                       )
                       return money(values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0)

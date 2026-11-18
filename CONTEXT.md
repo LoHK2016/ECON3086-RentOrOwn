@@ -29,7 +29,7 @@ The price the user expects to pay for the Flat. Defaults to the Bank Valuation, 
 _Avoid_: Asking price, market value
 
 **Bank Valuation** (銀行估價):
-The value a bank's valuation tool assigns to one specific Flat. The tool compares HSBC's live valuation with user-entered Hang Seng and BOCHK valuations and uses their average when available. A mortgage is sized on the lower of the resulting Bank Valuation and the Purchase Price.
+The value a bank's valuation tool assigns to one specific Flat. The tool compares HSBC's live valuation with user-entered BEA and Dah Sing valuations and uses their average when available. BEA and Dah Sing require verification on their official tools, so their values are entered manually. A mortgage is sized on the lower of the resulting Bank Valuation and the Purchase Price.
 _Avoid_: Estimate, appraisal, market value
 
 ### The mortgage

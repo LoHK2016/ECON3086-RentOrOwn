@@ -25,7 +25,7 @@ DEFAULTS = {
     "price_per_ft": None,  # the Estate's typical price per sq ft
     "rent_per_ft": None,  # the Estate's typical monthly rent per sq ft
     "valuation": None,  # Bank Valuation, HK$; None means same as the price
-    "bank_valuations": None,  # HSBC, Hang Seng and BOCHK valuations; average of the available values
+    "bank_valuations": None,  # HSBC, BEA and Dah Sing valuations; average of the available values
     "horizon_years": 10,
     "first_time": True,  # owns no other HK home and is salaried
     "ltv": None,  # loan-to-value, e.g. 0.8; None (or too high) means the highest allowed
