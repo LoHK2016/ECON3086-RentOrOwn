@@ -1,54 +1,51 @@
-# React + TypeScript + Vite
+# web — the page (it only displays)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **摘要**：React + TypeScript + Tailwind + shadcn/ui 嘅網站，由 Vite build，`deploy.yml` 放上 GitHub Pages。
+> 佢只係將資料傳入 Python、再顯示 Python 回傳嘅結果；所有計數喺 `rentorbuy/calc/`，因為 TypeScript 冇分。
 
-Currently, two official plugins are available:
+**Does:** read `data/latest.json`, collect the visitor's inputs, call our Python through Pyodide, draw the
+results (`App.tsx`, `components/`).
+**Does not:** calculate. `src/lib/format.ts` only turns numbers into text.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Where the Python comes from
 
-## Expanding the ESLint configuration
+`scripts/copy-python.mjs` runs before `dev` and `build`. It copies `rentorbuy/calc/*.py`,
+`rentorbuy/valuation.py`, `rentorbuy/browser.py` and `data/latest.json` into `public/` (ignored by git;
+edit the originals). `src/lib/python.ts` loads Pyodide from jsDelivr, writes those files into it, and calls
+`rentorbuy.compare_scenarios` for the Comparison.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## The flat picker
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```mermaid
+sequenceDiagram
+    participant P as FlatPicker.tsx
+    participant T as lib/python.ts
+    participant V as rentorbuy.valuation (Pyodide)
+    participant H as HSBC valuation API
+    P->>T: Estate's HSBC ids (from latest.json)
+    loop blocks, then floors, then flats
+        T->>V: get_options(browser.send, chosen)
+        V->>H: POST, retried on HSBC's random 404s
+        H-->>V: next level's choices
+        V-->>P: options for the next dropdown
+    end
+    P->>T: chosen Flat
+    T->>V: get_valuation(browser.send, chosen)
+    V->>H: POST
+    H-->>V: Bank Valuation and Saleable Area
+    V-->>P: Flat, which fills the Comparison's inputs
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Rules that must hold
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- When the page needs a new number, add it to what `rentorbuy.compare()` returns and display it here.
+- Python files are fetched with `cache: "no-cache"`, so a new deploy never runs old Python.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+## Run it
+
+```bash
+pnpm --dir web install
+pnpm --dir web dev     # http://localhost:5173
+pnpm --dir web build
+pnpm --dir web lint
 ```
