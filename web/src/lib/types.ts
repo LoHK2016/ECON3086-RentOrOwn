@@ -56,6 +56,20 @@ export type Snapshot = {
     history_to: string
     method: string
     observations: number
+    arima?: {
+      price: {
+        model: string
+        horizon_years: number
+        point_growth_pct: number
+        intervals_pct: Record<"80%" | "95%", [number, number]>
+      }
+      rent: {
+        model: string
+        horizon_years: number
+        point_growth_pct: number
+        intervals_pct: Record<"80%" | "95%", [number, number]>
+      }
+    }
   }
   investment_return: { value: number; provisional: boolean; bank?: string; months?: string }
   deposits?: Record<string, { rates: Record<string, number>; url: string; date: string }>

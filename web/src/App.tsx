@@ -387,8 +387,12 @@ export default function App() {
               footer={
                 <span className="inline-flex flex-wrap items-center gap-1.5">
                   {t("marketBenchmark", {
-                    price: data.scenarios.neutral.price_growth,
-                    rent: data.scenarios.neutral.rent_growth,
+                    price: data.market_benchmark?.arima?.price.point_growth_pct ?? data.scenarios.neutral.price_growth,
+                    rent: data.market_benchmark?.arima?.rent.point_growth_pct ?? data.scenarios.neutral.rent_growth,
+                    priceLow: data.market_benchmark?.arima?.price.intervals_pct["80%"][0] ?? data.scenarios.pessimistic.price_growth,
+                    priceHigh: data.market_benchmark?.arima?.price.intervals_pct["80%"][1] ?? data.scenarios.optimistic.price_growth,
+                    rentLow: data.market_benchmark?.arima?.rent.intervals_pct["80%"][0] ?? data.scenarios.pessimistic.rent_growth,
+                    rentHigh: data.market_benchmark?.arima?.rent.intervals_pct["80%"][1] ?? data.scenarios.optimistic.rent_growth,
                   })}
                 </span>
               }

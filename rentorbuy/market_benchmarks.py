@@ -1,15 +1,19 @@
-"""Derive market-growth benchmarks from Hong Kong RVD historical indices.
+"""Forecast Hong Kong housing price and rent growth with ARIMA.
 
-Uses monthly private-domestic "All Classes" indices from the Rating and
-Valuation Department. The scenarios are percentile bands of rolling
-10-year annualized changes over the latest 30 years of available data.
+The source series are official monthly private-domestic All Classes indices
+from the Rating and Valuation Department. The forecast is a model estimate,
+not a claim that future growth is certain.
 """
 
 import csv
 import json
+import math
 from datetime import datetime
 from pathlib import Path
 from urllib.request import urlopen
+
+import numpy as np
+from statsmodels.tsa.arima.model import ARIMA
 
 
 PRICE_URL = "https://www.rvd.gov.hk/datagovhk/1.4M.csv"
@@ -39,7 +43,7 @@ def read_monthly_index(url):
 
 
 def percentile(values, fraction):
-    """Linear-interpolated percentile, with no external library needed."""
+    """Linear-interpolated percentile."""
     ordered = sorted(values)
     if not ordered:
         raise ValueError("no benchmark observations")
@@ -58,25 +62,20 @@ def rolling_ten_year_cagrs(values, latest_month):
     for month, index in recent:
         by_year.setdefault((month.year, month.month), index)
     observations = []
-    ordered = sorted(by_year)
-    for month_key in ordered:
+    for month_key in sorted(by_year):
         start_year, start_month = month_key
         end_key = (start_year + 10, start_month)
         if end_key in by_year:
             start = by_year[month_key]
             end = by_year[end_key]
-            cagr = (end / start) ** (1 / 10) - 1
-            observations.append(cagr * 100)
+            observations.append(((end / start) ** (1 / 10) - 1) * 100)
     return observations
 
 
 def derive_benchmarks(price_values, rent_values):
-    """Derive 10th, median and 90th growth bands from 30 years of RVD data."""
+    """Keep historical percentile bands for fallback and transparency."""
     latest = max(price_values[-1][0], rent_values[-1][0])
-    price_cagrs = rolling_ten_year_cagrs(price_values, latest)
-    rent_cagrs = rolling_ten_year_cagrs(rent_values, latest)
     cutoff = datetime(latest.year - 30, latest.month, 1)
-    from_date = cutoff.strftime("%Y-%m")
 
     def band(cagrs):
         return {
@@ -85,30 +84,107 @@ def derive_benchmarks(price_values, rent_values):
             "optimistic": round(percentile(cagrs, 0.90), 2),
         }
 
-    price = band(price_cagrs)
-    rent = band(rent_cagrs)
+    price = band(rolling_ten_year_cagrs(price_values, latest))
+    rent = band(rolling_ten_year_cagrs(rent_values, latest))
     return {
         "source": "Hong Kong Rating and Valuation Department",
         "source_urls": [PRICE_URL, RENT_URL],
-        "history_from": from_date,
+        "history_from": cutoff.strftime("%Y-%m"),
         "history_to": latest.strftime("%Y-%m"),
-        "method": "Rolling 10-year annualized changes; 10th/50th/90th percentiles",
-        "observations": len(price_cagrs),
+        "method": "Rolling 10-year annualized changes; historical fallback",
         "price_growth": price,
         "rent_growth": rent,
-        "scenarios": {
-            name: {
-                "price_growth": price[name],
-                "rent_growth": rent[name],
-            }
-            for name in ("pessimistic", "neutral", "optimistic")
-        },
+    }
+
+
+def arima_forecast(values, horizon_months=120):
+    """Fit log-level ARIMA candidates and forecast one horizon."""
+    latest = datetime.now().year - 30
+    recent = [(month, index) for month, index in values if month.year >= latest]
+    if len(recent) < 36:
+        raise ValueError("not enough observations for an ARIMA forecast")
+
+    observed = np.array([math.log(index) for _, index in recent], dtype=float)
+    candidates = [(0, 1, 1), (1, 1, 0), (1, 1, 1), (2, 1, 1)]
+    best = None
+    for order in candidates:
+        try:
+            fitted = ARIMA(observed, order=order).fit()
+            if not fitted.mle_retvals.get("converged", False):
+                continue
+            if best is None or fitted.aic < best["model"].aic:
+                best = {"model": fitted, "order": order}
+        except Exception:
+            continue
+    if best is None:
+        raise ValueError("no ARIMA candidate could be fitted")
+
+    forecast = best["model"].get_forecast(steps=horizon_months)
+    start_index = math.exp(observed[-1])
+    point_index = np.exp(np.asarray(forecast.predicted_mean))
+    point = (point_index[-1] / start_index) ** (12 / horizon_months) - 1
+
+    intervals = {}
+    for confidence, alpha in ((80, 0.20), (95, 0.05)):
+        frame = forecast.conf_int(alpha=alpha)
+        low_index = np.exp(np.asarray(frame[:, 0]))
+        high_index = np.exp(np.asarray(frame[:, 1]))
+        low = (low_index[-1] / start_index) ** (12 / horizon_months) - 1
+        high = (high_index[-1] / start_index) ** (12 / horizon_months) - 1
+        intervals[f"{confidence}%"] = [
+            round(low * 100, 2),
+            round(high * 100, 2),
+        ]
+
+    return {
+        "model": "ARIMA" + str(best["order"]),
+        "horizon_years": horizon_months // 12,
+        "point_growth_pct": round(point * 100, 2),
+        "intervals_pct": intervals,
+        "observations": len(observed),
+    }
+
+
+def arima_forecasts(price_values, rent_values):
+    """Return separate 10-year ARIMA forecasts for price and rent indices."""
+    latest = max(price_values[-1][0], rent_values[-1][0])
+    cutoff = datetime(latest.year - 30, latest.month, 1)
+    price = [(month, index) for month, index in price_values if month >= cutoff]
+    rent = [(month, index) for month, index in rent_values if month >= cutoff]
+    return {
+        "source": "Hong Kong Rating and Valuation Department",
+        "source_urls": [PRICE_URL, RENT_URL],
+        "history_from": cutoff.strftime("%Y-%m"),
+        "history_to": latest.strftime("%Y-%m"),
+        "method": "Independent log-level ARIMA models; 10-year forecasts",
+        "price": arima_forecast(price),
+        "rent": arima_forecast(rent),
     }
 
 
 def fetch_benchmarks():
-    """Fetch both official RVD files and derive the benchmark."""
-    return derive_benchmarks(read_monthly_index(PRICE_URL), read_monthly_index(RENT_URL))
+    """Fetch both RVD series and derive point forecasts plus intervals."""
+    price = read_monthly_index(PRICE_URL)
+    rent = read_monthly_index(RENT_URL)
+    historical = derive_benchmarks(price, rent)
+    arima = arima_forecasts(price, rent)
+    historical["arima"] = arima
+    historical["method"] = "Independent log-level ARIMA 10-year forecasts"
+    historical["scenarios"] = {
+        "pessimistic": {
+            "price_growth": arima["price"]["intervals_pct"]["80%"][0],
+            "rent_growth": arima["rent"]["intervals_pct"]["80%"][0],
+        },
+        "neutral": {
+            "price_growth": arima["price"]["point_growth_pct"],
+            "rent_growth": arima["rent"]["point_growth_pct"],
+        },
+        "optimistic": {
+            "price_growth": arima["price"]["intervals_pct"]["80%"][1],
+            "rent_growth": arima["rent"]["intervals_pct"]["80%"][1],
+        },
+    }
+    return historical
 
 
 def saved_benchmarks():
@@ -120,7 +196,7 @@ def saved_benchmarks():
 
 
 def current_benchmarks():
-    """Use today's RVD data, with the saved benchmark as a network fallback."""
+    """Use live RVD data with a saved snapshot as network fallback."""
     try:
         return fetch_benchmarks()
     except (OSError, ValueError, csv.Error):

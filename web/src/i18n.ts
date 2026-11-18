@@ -97,8 +97,8 @@ const en = {
   neutral: "Neutral",
   optimistic: "Optimistic",
   scenarioGrowth: "Prices {price}% a year, rent {rent}% a year",
-  marketBenchmarkLabel: "30-year market benchmark",
-  marketBenchmark: "30-year median benchmark: prices {price}% a year, rent {rent}% a year",
+  marketBenchmarkLabel: "10-year ARIMA forecast",
+  marketBenchmark: "Point: prices {price}% / rent {rent}% a year. 80% interval: prices {priceLow}% to {priceHigh}%, rent {rentLow}% to {rentHigh}%.",
 
   buyWins: "Buying comes out ahead",
   rentWins: "Renting comes out ahead",
@@ -262,8 +262,8 @@ const zhHant: Strings = {
   neutral: "中性",
   optimistic: "樂觀",
   scenarioGrowth: "樓價每年 {price}%，租金每年 {rent}%",
-  marketBenchmarkLabel: "30 年歷史市況基準",
-  marketBenchmark: "30 年中位數基準：樓價每年 {price}%，租金每年 {rent}%",
+  marketBenchmarkLabel: "10 年 ARIMA 預測",
+  marketBenchmark: "點預測：樓價每年 {price}%，租金每年 {rent}%。80% 區間：樓價 {priceLow}% 至 {priceHigh}%，租金 {rentLow}% 至 {rentHigh}%。",
 
   buyWins: "買樓較著數",
   rentWins: "租樓較著數",

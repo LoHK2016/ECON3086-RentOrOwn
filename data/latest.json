@@ -1128,16 +1128,16 @@
   ],
   "scenarios": {
     "pessimistic": {
-      "price_growth": -0.42,
-      "rent_growth": -0.19
+      "price_growth": -6.17,
+      "rent_growth": -4.26
     },
     "neutral": {
-      "price_growth": 8.11,
-      "rent_growth": 3.05
+      "price_growth": 0.03,
+      "rent_growth": 0.11
     },
     "optimistic": {
-      "price_growth": 12.9,
-      "rent_growth": 7.36
+      "price_growth": 6.63,
+      "rent_growth": 4.69
     }
   },
   "deposits": {
@@ -1307,8 +1307,7 @@
     ],
     "history_from": "1996-09",
     "history_to": "2026-09",
-    "method": "Rolling 10-year annualized changes; 10th/50th/90th percentiles",
-    "observations": 241,
+    "method": "Independent log-level ARIMA 10-year forecasts",
     "price_growth": {
       "pessimistic": -0.42,
       "neutral": 8.11,
@@ -1319,18 +1318,60 @@
       "neutral": 3.05,
       "optimistic": 7.36
     },
+    "arima": {
+      "source": "Hong Kong Rating and Valuation Department",
+      "source_urls": [
+        "https://www.rvd.gov.hk/datagovhk/1.4M.csv",
+        "https://www.rvd.gov.hk/datagovhk/1.3M.csv"
+      ],
+      "history_from": "1996-09",
+      "history_to": "2026-09",
+      "method": "Independent log-level ARIMA models; 10-year forecasts",
+      "price": {
+        "model": "ARIMA(1, 1, 0)",
+        "horizon_years": 10,
+        "point_growth_pct": 0.03,
+        "intervals_pct": {
+          "80%": [
+            -6.17,
+            6.63
+          ],
+          "95%": [
+            -9.29,
+            10.3
+          ]
+        },
+        "observations": 361
+      },
+      "rent": {
+        "model": "ARIMA(1, 1, 0)",
+        "horizon_years": 10,
+        "point_growth_pct": 0.11,
+        "intervals_pct": {
+          "80%": [
+            -4.26,
+            4.69
+          ],
+          "95%": [
+            -6.5,
+            7.2
+          ]
+        },
+        "observations": 361
+      }
+    },
     "scenarios": {
       "pessimistic": {
-        "price_growth": -0.42,
-        "rent_growth": -0.19
+        "price_growth": -6.17,
+        "rent_growth": -4.26
       },
       "neutral": {
-        "price_growth": 8.11,
-        "rent_growth": 3.05
+        "price_growth": 0.03,
+        "rent_growth": 0.11
       },
       "optimistic": {
-        "price_growth": 12.9,
-        "rent_growth": 7.36
+        "price_growth": 6.63,
+        "rent_growth": 4.69
       }
     }
   }
