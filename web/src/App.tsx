@@ -21,9 +21,16 @@ import { cn } from "@/lib/utils"
 
 type Shift = "-1" | "0" | "1"
 type InvestMode = "deposit" | "hk" | "us" | "custom"
+type PrimeChoice = "bank" | "small" | "big"
 
 // The ETF behind each stock choice (returns worked out in rentorbuy/etf_returns.py).
 const ETF_TICKER = { hk: "2800.HK", us: "SPY" } as const
+const P_RATE_BANKS = { small: "HSBC", big: "BOCHK" } as const
+const PRIME_SOURCE_URLS: Record<string, string> = {
+  HSBC: "https://www.hsbc.com.hk/investments/market-information/hk/lending-rate/",
+  BOCHK: "https://www.bochk.com/whk/rates/hkDollarPrimeRate/hkDollarPrimeRate-enquiry.action?lang=en",
+  "Hang Seng": "https://rbwm-api.hsbc.com.hk/pws-hk-hase-rates-papi-prod-proxy/v1/hkd-prime-rates",
+}
 
 const REGION_ORDER = ["香港島", "九龍", "新界"]
 const REGION_SHORT_EN: Record<string, string> = { 香港島: "HK Island", 九龍: "Kowloon", 新界: "New Territories" }
@@ -63,6 +70,7 @@ export default function App() {
   const [permanent, setPermanent] = useState(true)
   const [income, setIncome] = useState("")
   const [bank, setBank] = useState(0)
+  const [primeChoice, setPrimeChoice] = useState<PrimeChoice>("bank")
   const [ltv, setLtv] = useState<number | null>(null)
   const [term, setTerm] = useState(30)
   const [shift, setShift] = useState<Shift>("0")
@@ -96,8 +104,9 @@ export default function App() {
 
   const estate: Estate | undefined = data?.estates.find((e) => e.id === estateId)
   const plan = data?.bank_plans[bank]
-  // The bank's own prime if we could read it; otherwise HKMA's (Standard Chartered).
-  const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
+  const primeBank = primeChoice === "bank" ? plan?.bank : P_RATE_BANKS[primeChoice]
+  // HKMA publishes one unlabelled best-lending rate; the two choices use bank-specific rates.
+  const bankPrime = primeBank ? data?.bank_primes?.[primeBank] : undefined
   const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
   const etf = investMode === "hk" || investMode === "us" ? data?.etf_returns?.[ETF_TICKER[investMode]] : undefined
 
@@ -310,7 +319,17 @@ export default function App() {
                       prime: prime.toFixed(2),
                       discount: plan.prime_discount,
                     })}{" "}
-                    {bankPrime ? t("primeFromBank", { bank: plan.bank }) : t("primeFromHkma")}
+                    {bankPrime && primeBank ? (
+                      <a
+                        href={PRIME_SOURCE_URLS[primeBank]}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline decoration-dotted underline-offset-2"
+                      >
+                        {t("primeFromBank", { bank: primeBank, date: bankPrime.date })}
+                        <ExternalLink className="ml-1 inline size-3" />
+                      </a>
+                    ) : t("primeFromHkma")}
                     {plan.provisional && <ProvisionalBadge lang={lang} />}
                   </span>
                 )
@@ -353,6 +372,23 @@ export default function App() {
                   <p className="text-[13px] text-muted-foreground">{t("ltvMax", { max: percent(used.max_ltv, 0) })}</p>
                 </div>
               )}
+              <div className="space-y-2 py-3">
+                <div>
+                  <p className="text-[17px]">{t("pRateChoice")}</p>
+                  <p className="text-[13px] leading-snug text-muted-foreground">{t("pRateChoiceHint")}</p>
+                </div>
+                <Segmented
+                  label={t("pRateChoice")}
+                  value={primeChoice}
+                  onChange={setPrimeChoice}
+                  options={[
+                    { value: "bank", label: t("pRateBank") },
+                    { value: "small", label: t("pRateSmall") },
+                    { value: "big", label: t("pRateBig") },
+                  ]}
+                  className="w-full"
+                />
+              </div>
               <Row label={t("term")}>
                 <Segmented
                   label={t("term")}

@@ -39,6 +39,8 @@ No bank's HTML states the H-plan spread, cap or cash rebate as numbers; those ar
 | Standard Chartered | not found | `https://www.sc.com/hk/deposits/board-rates/` (HTML; was marked "As at 5 June 2026", so may be stale) | `/hk/` allowed |
 | Hang Seng | JS-filled; JSON at `https://rbwm-api.hsbc.com.hk/pws-hk-hase-rates-papi-prod-proxy/v1/hkd-prime-rates` (works with a plain GET; field `rate`) | `…/interest-rates` (not called) | rate paths allowed |
 
+The HKMA prime endpoint gives one unnamed best-lending rate, not separate small-P and big-P series. The site's two choices therefore use HSBC's and BOCHK's published bank-specific prime rates as representative sources; the choices are not an HKMA-defined classification. Each rate comes from the daily snapshot's `bank_primes` data.
+
 On 2026-11-11 HSBC, BOCHK and SC all showed HKD 3M 0.125% and 12M 0.150%.
 
 ## HKD time deposits for new funds (checked 12 Nov 2026)
