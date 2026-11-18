@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from rentorbuy.calc.stamp_duty import stamp_duty
+from rentorbuy.calc.affordability import assess_affordability, loan_for_monthly_payment
 from rentorbuy.calc.mortgage import (
     balance_after,
     effective_rate,
@@ -195,12 +196,66 @@ def test_dsr_warning():
 
 def test_scenarios_order():
     scenarios = {
-        "pessimistic": {"price_growth": -2, "rent_growth": 0},
-        "optimistic": {"price_growth": 5, "rent_growth": 3},
+        "conservative": {"price_growth": 1, "investment_return": 4},
+        "normal": {"price_growth": 3, "investment_return": 6},
+        "optimistic": {"price_growth": 5, "investment_return": 8},
     }
     inputs = {"price": 6_000_000, "saleable_area": 450, "monthly_rent": 17_000, "mortgage_rate": 3.25}
     results = compare_scenarios(inputs, scenarios)
-    assert results["optimistic"]["gap"] > results["pessimistic"]["gap"]
+    assert results["optimistic"]["gap"] > results["conservative"]["gap"]
+    assert results["conservative"]["inputs"]["investment_return"] == 4
+    assert results["normal"]["inputs"]["price_growth"] == 3
+    assert results["normal"]["inputs"]["investment_return"] == 6
+    assert results["optimistic"]["inputs"]["investment_return"] == 8
+
+
+def test_scenario_returns_can_be_overridden():
+    scenarios = {
+        "conservative": {"price_growth": 1, "investment_return": 4},
+        "normal": {"price_growth": 3, "investment_return": 6},
+        "optimistic": {"price_growth": 5, "investment_return": 8},
+    }
+    inputs = {
+        "price": 6_000_000, "saleable_area": 450, "monthly_rent": 17_000,
+        "mortgage_rate": 3.25, "investment_return": 3.5, "use_scenario_return": False,
+        "rent_growth": 7,
+    }
+    results = compare_scenarios(inputs, scenarios)
+    assert all(result["inputs"]["investment_return"] == 3.5 for result in results.values())
+    assert all(result["inputs"]["rent_growth"] == 7 for result in results.values())
+
+
+def test_loan_for_monthly_payment():
+    assert close(loan_for_monthly_payment(25_000, 0, 30), 9_000_000)
+    assert close(monthly_payment(loan_for_monthly_payment(25_000, 3.25, 30), 3.25, 30), 25_000)
+
+
+def test_affordability_example_and_stress_test():
+    result = assess_affordability(50_000, 0, 1_500_000, 3.25)
+    assert 6_000_000 <= result["maximum_property_price"] <= 7_500_000
+    assert close(result["maximum_mortgage"], loan_for_monthly_payment(25_000, 3.25, 30))
+    assert result["ltv"] <= 0.80
+    assert close(result["debt_to_income_ratio"], 0.50)
+    assert result["stress_rate"] == 5.25
+    assert result["stress_test_passes"] is False
+    assert result["stress_debt_to_income_ratio"] > 0.50
+
+
+def test_affordability_accounts_for_existing_payments_and_tiered_ltv():
+    without_debt = assess_affordability(50_000, 0, 1_500_000, 3.25)
+    with_debt = assess_affordability(50_000, 5_000, 1_500_000, 3.25)
+    assert with_debt["maximum_mortgage"] < without_debt["maximum_mortgage"]
+    assert with_debt["debt_to_income_ratio"] <= 0.50
+    high_price = assess_affordability(200_000, 0, 10_000_000, 3.25)
+    assert high_price["ltv"] < 0.80
+
+
+def test_affordability_rejects_invalid_inputs():
+    try:
+        assess_affordability(0, 0, 1_000_000, 3.25)
+        assert False, "should have raised"
+    except ValueError:
+        pass
 
 
 def test_inputs_from_estate_and_plan():

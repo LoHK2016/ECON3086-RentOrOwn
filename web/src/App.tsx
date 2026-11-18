@@ -3,6 +3,7 @@ import { AlertTriangle, ExternalLink } from "lucide-react"
 import { DepositRanking } from "@/components/DepositRanking"
 import { FlatPicker } from "@/components/FlatPicker"
 import { NetWorthChart } from "@/components/NetWorthChart"
+import { Affordability } from "@/components/Affordability"
 import { NumberField, Row, Section, Segmented, digits, parsed } from "@/components/grouped"
 import {
   Select,
@@ -16,11 +17,12 @@ import { Switch } from "@/components/ui/switch"
 import { LANGUAGES, STRINGS, defaultLang, translate, type Lang } from "@/i18n"
 import { money, percent } from "@/lib/format"
 import { compareScenarios, loadCalculator } from "@/lib/python"
-import { SCENARIO_NAMES, type Estate, type Flat, type Result, type ScenarioName, type Snapshot } from "@/lib/types"
+import { MARKET_SCENARIOS, SCENARIO_NAMES, type Estate, type Flat, type Result, type ScenarioName, type Snapshot } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 type Shift = "-1" | "0" | "1"
-type InvestMode = "deposit" | "hk" | "us" | "custom"
+type InvestMode = "scenario" | "deposit" | "hk" | "us" | "custom"
+type Tool = "comparison" | "affordability"
 
 // The ETF behind each stock choice (returns worked out in rentorbuy/etf_returns.py).
 const ETF_TICKER = { hk: "2800.HK", us: "SPY" } as const
@@ -44,6 +46,7 @@ function ProvisionalBadge({ lang }: { lang: Lang }) {
 
 export default function App() {
   const [lang, setLang] = useState<Lang>(defaultLang)
+  const [tool, setTool] = useState<Tool>("comparison")
   const t = (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) =>
     translate(lang, key, values)
 
@@ -68,9 +71,10 @@ export default function App() {
   const [shift, setShift] = useState<Shift>("0")
   const [horizon, setHorizon] = useState(10)
   const [invest, setInvest] = useState("")
-  const [investMode, setInvestMode] = useState<InvestMode>("deposit")
+  const [investMode, setInvestMode] = useState<InvestMode>("scenario")
+  const [rentGrowth, setRentGrowth] = useState("2")
   const [rebate, setRebate] = useState("")
-  const [scenario, setScenario] = useState<ScenarioName>("neutral")
+  const [scenario, setScenario] = useState<ScenarioName>("normal")
 
   useEffect(() => {
     document.documentElement.lang = lang === "zh-Hant" ? "zh-Hant-HK" : "en"
@@ -100,6 +104,9 @@ export default function App() {
   const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
   const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
   const etf = investMode === "hk" || investMode === "us" ? data?.etf_returns?.[ETF_TICKER[investMode]] : undefined
+  const affordabilityRate = plan && data
+    ? Math.min(data.rates.hibor_1m + plan.hibor_spread, prime - plan.prime_discount)
+    : 0
 
   const inputs = useMemo(() => {
     if (!data || !estate || !plan) return null
@@ -121,15 +128,17 @@ export default function App() {
       ltv: ltv === null ? undefined : ltv / 100,
       mortgage_years: term,
       horizon_years: horizon,
+      rent_growth: parsed(rentGrowth) ?? 2,
       investment_return: (investMode === "custom" ? parsed(invest) : etf?.value) ?? data.investment_return.value,
+      use_scenario_return: investMode === "scenario",
       cash_rebate_pct: parsed(rebate) ?? plan.cash_rebate_pct,
     }
-  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
+  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, rentGrowth, invest, investMode, etf, rebate])
 
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
     let current = true
-    compareScenarios(inputs, data.scenarios)
+    compareScenarios(inputs, MARKET_SCENARIOS)
       .then((next) => current && setResults(next))
       .catch((error) => console.error(error))
     return () => {
@@ -166,8 +175,12 @@ export default function App() {
     <div className="mx-auto max-w-6xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
         <div>
-          <h1 className="text-[34px] leading-tight font-bold tracking-tight">{t("title")}</h1>
-          <p className="mt-1 max-w-xl text-[17px] text-muted-foreground">{t("subtitle")}</p>
+          <h1 className="text-[34px] leading-tight font-bold tracking-tight">
+            {tool === "comparison" ? t("title") : t("affordabilityTitle")}
+          </h1>
+          <p className="mt-1 max-w-xl text-[17px] text-muted-foreground">
+            {tool === "comparison" ? t("subtitle") : t("affordabilitySubtitle")}
+          </p>
         </div>
         <Segmented
           label="Language"
@@ -180,8 +193,23 @@ export default function App() {
       {status === "loading" && <p className="py-24 text-center text-muted-foreground">{t("loading")}</p>}
       {status === "error" && <p className="py-24 text-center text-destructive">{t("loadError")}</p>}
 
-      {status === "ready" && data && estate && plan && (
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      {status === "ready" && data && (
+        <>
+          <div className="mb-6 max-w-sm">
+            <Segmented
+              label={t("toolComparison")}
+              value={tool}
+              onChange={setTool}
+              options={[
+                { value: "comparison", label: t("toolComparison") },
+                { value: "affordability", label: t("toolAffordability") },
+              ]}
+            />
+          </div>
+          {tool === "affordability" ? (
+            <Affordability lang={lang} mortgageRate={affordabilityRate} />
+          ) : estate && plan ? (
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
           {/* ---------- Inputs ---------- */}
           <div className="space-y-7">
             <Section
@@ -387,8 +415,8 @@ export default function App() {
               footer={
                 <span className="inline-flex flex-wrap items-center gap-1.5">
                   {t("scenarioGrowth", {
-                    price: data.scenarios[scenario].price_growth,
-                    rent: data.scenarios[scenario].rent_growth,
+                    price: MARKET_SCENARIOS[scenario].price_growth,
+                    investment: MARKET_SCENARIOS[scenario].investment_return,
                   })}
                   <ProvisionalBadge lang={lang} />
                 </span>
@@ -405,12 +433,15 @@ export default function App() {
               </div>
               <div className="space-y-2 py-3">
                 <span className="text-[17px]">{t("invest")}</span>
-                <p className="text-[13px] leading-snug text-muted-foreground">{t("investHint")}</p>
+                <p className="text-[13px] leading-snug text-muted-foreground">
+                  {investMode === "scenario" ? t("investScenarioHint") : t("investHint")}
+                </p>
                 <Segmented
                   label={t("invest")}
                   value={investMode}
                   onChange={setInvestMode}
                   options={[
+                    { value: "scenario", label: t("investScenario") },
                     { value: "deposit", label: t("investDeposit") },
                     ...(data.etf_returns?.[ETF_TICKER.hk] ? [{ value: "hk" as const, label: t("investHk") }] : []),
                     ...(data.etf_returns?.[ETF_TICKER.us] ? [{ value: "us" as const, label: t("investUs") }] : []),
@@ -418,7 +449,13 @@ export default function App() {
                   ]}
                 />
               </div>
-              {investMode === "deposit" ? (
+              {investMode === "scenario" ? (
+                <Row label={t("invest")}>
+                  <span className="text-foreground tabular-nums">
+                    {MARKET_SCENARIOS[scenario].investment_return.toFixed(0)}%
+                  </span>
+                </Row>
+              ) : investMode === "deposit" ? (
                 <Row
                   label={t("investDepositRate")}
                   hint={
@@ -457,6 +494,14 @@ export default function App() {
                   />
                 </Row>
               )}
+              <Row label={t("rentGrowth")} htmlFor="rentGrowth">
+                <NumberField
+                  id="rentGrowth"
+                  value={rentGrowth}
+                  onChange={setRentGrowth}
+                  suffix="%"
+                />
+              </Row>
               <div className="space-y-2 py-3">
                 <span className="text-[17px]">{t("scenario")}</span>
                 <Segmented
@@ -630,7 +675,9 @@ export default function App() {
               </>
             )}
           </div>
-        </div>
+          </div>
+          ) : null}
+        </>
       )}
 
       <footer className="mt-12 text-center text-[13px] text-muted-foreground">{t("footer")}</footer>
