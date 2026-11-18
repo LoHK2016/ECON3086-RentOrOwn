@@ -10,12 +10,36 @@ Should you buy a Hong Kong home, or rent it and invest the difference? An ECON30
 - `tests/`: hand-checked `assert` tests (`test_calc.py`, `test_valuation.py`, `test_daily.py`, `test_scrapers.py`, `test_banks.py`, `test_deposits.py`, `test_etf_returns.py`, `test_centaline.py`).
 - `web/`: the website (React, Tailwind, shadcn/ui). It only displays what Python returns.
 
-See `CONTEXT.md` for the words we use and `docs/adr/` for why it is built this way.
+## How it fits together
+
+```mermaid
+flowchart LR
+    subgraph gha["GitHub Actions, every morning (scrape.yml)"]
+        DAILY["rentorbuy/scrapers/daily.py"]
+    end
+    SRC["Midland or Centaline, HKMA, bank websites"] --> DAILY
+    MAN["data/manual/assumptions.json<br/>data/etf_returns.json, data/hsbc_estates.json"] --> DAILY
+    DAILY --> LATEST["data/latest.json<br/>+ dated copy"]
+    subgraph browser["Visitor's browser (GitHub Pages)"]
+        PAGE["web/: React page"]
+        CALC["rentorbuy.compare_scenarios<br/>(Python in Pyodide)"]
+        VAL["rentorbuy.valuation<br/>(Python in Pyodide)"]
+        PAGE -->|"inputs dict"| CALC
+        CALC -->|"results dict"| PAGE
+        PAGE -->|"flat picked"| VAL
+    end
+    LATEST --> PAGE
+    VAL <-->|"live, per visitor"| HSBC["HSBC valuation API"]
+```
+
+Each folder with rules of its own has a `README.md`: `rentorbuy/calc/`, `rentorbuy/scrapers/`, `data/` and `web/`.
+
+See `CONTEXT.md` for the words we use, `docs/adr/` for why it is built this way, and `CONTRIBUTING.md` for how we work on it.
 
 ## Run it
 
 ```bash
-uv run python tests/test_calc.py && uv run python tests/test_valuation.py && uv run python tests/test_daily.py   # the tests
+uv run pytest                               # the tests (each file also runs alone: uv run python tests/test_calc.py)
 uv run python -m rentorbuy.scrapers.daily   # scrape today's data
 uv run python -m rentorbuy.scrapers.etf     # refresh ETF prices (Yahoo Finance) and returns, every few months
 pnpm --dir web install && pnpm --dir web dev   # the site, at http://localhost:5173
