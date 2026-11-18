@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils"
 
 type Shift = "-1" | "0" | "1"
 type InvestMode = "deposit" | "hk" | "us" | "custom"
-type PrimeChoice = "bank" | "small" | "big"
+type PrimeChoice = "h" | "small" | "big"
 
 // The ETF behind each stock choice (returns worked out in rentorbuy/etf_returns.py).
 const ETF_TICKER = { hk: "2800.HK", us: "SPY" } as const
@@ -70,7 +70,7 @@ export default function App() {
   const [permanent, setPermanent] = useState(true)
   const [income, setIncome] = useState("")
   const [bank, setBank] = useState(0)
-  const [primeChoice, setPrimeChoice] = useState<PrimeChoice>("bank")
+  const [primeChoice, setPrimeChoice] = useState<PrimeChoice>("h")
   const [ltv, setLtv] = useState<number | null>(null)
   const [term, setTerm] = useState(30)
   const [shift, setShift] = useState<Shift>("0")
@@ -104,7 +104,7 @@ export default function App() {
 
   const estate: Estate | undefined = data?.estates.find((e) => e.id === estateId)
   const plan = data?.bank_plans[bank]
-  const primeBank = primeChoice === "bank" ? plan?.bank : P_RATE_BANKS[primeChoice]
+  const primeBank = primeChoice === "h" ? plan?.bank : P_RATE_BANKS[primeChoice]
   // HKMA publishes one unlabelled best-lending rate; the two choices use bank-specific rates.
   const bankPrime = primeBank ? data?.bank_primes?.[primeBank] : undefined
   const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
@@ -122,6 +122,7 @@ export default function App() {
       valuation: parsed(valuation) ?? specific?.valuation,
       first_time: firstTime,
       monthly_income: parsed(income),
+      mortgage_rate: primeChoice === "h" ? undefined : prime,
       hibor: data.rates.hibor_1m,
       prime,
       hibor_spread: plan.hibor_spread,
@@ -133,7 +134,7 @@ export default function App() {
       investment_return: (investMode === "custom" ? parsed(invest) : etf?.value) ?? data.investment_return.value,
       cash_rebate_pct: parsed(rebate) ?? plan.cash_rebate_pct,
     }
-  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
+  }, [data, estate, plan, prime, primeChoice, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
 
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
@@ -313,12 +314,14 @@ export default function App() {
               footer={
                 used && (
                   <span className="inline-flex flex-wrap items-center gap-1.5">
-                    {t("rateFormula", {
-                      hibor: data.rates.hibor_1m.toFixed(2),
-                      spread: plan.hibor_spread,
-                      prime: prime.toFixed(2),
-                      discount: plan.prime_discount,
-                    })}{" "}
+                    {primeChoice === "h"
+                      ? t("rateFormula", {
+                          hibor: data.rates.hibor_1m.toFixed(2),
+                          spread: plan.hibor_spread,
+                          prime: prime.toFixed(2),
+                          discount: plan.prime_discount,
+                        })
+                      : t("pRateFormula", { prime: prime.toFixed(2) })}{" "}
                     {bankPrime && primeBank ? (
                       <a
                         href={PRIME_SOURCE_URLS[primeBank]}
@@ -382,7 +385,7 @@ export default function App() {
                   value={primeChoice}
                   onChange={setPrimeChoice}
                   options={[
-                    { value: "bank", label: t("pRateBank") },
+                    { value: "h", label: t("pRateH") },
                     { value: "small", label: t("pRateSmall") },
                     { value: "big", label: t("pRateBig") },
                   ]}

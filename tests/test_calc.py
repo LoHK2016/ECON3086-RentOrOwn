@@ -224,6 +224,21 @@ def test_inputs_from_estate_and_plan():
                     "monthly_rent": 20_000, "mortgage_rate": 3})["inputs"]["price"] == 6_000_000
 
 
+def test_explicit_prime_rate_overrides_h_plan_calculation():
+    result = compare({
+        "saleable_area": 450,
+        "price": 6_000_000,
+        "monthly_rent": 20_000,
+        "mortgage_rate": 5.0,
+        "hibor": 1.0,
+        "prime": 4.0,
+        "hibor_spread": 1.0,
+        "prime_discount": 1.0,
+        "rate_shift": 0.5,
+    })
+    assert close(result["inputs"]["mortgage_rate"], 5.5)
+
+
 def test_price_defaults_to_valuation():
     # A specific Flat valued by the bank at 18.93M: that is the price unless the user types one.
     result = compare({"saleable_area": 1146, "price_per_ft": 16_000, "rent_per_ft": 46,
