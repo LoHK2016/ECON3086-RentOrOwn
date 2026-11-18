@@ -97,7 +97,7 @@ const en = {
   neutral: "Neutral",
   optimistic: "Optimistic",
   scenarioGrowth: "Prices {price}% a year, rent {rent}% a year",
-  marketBenchmarkLabel: "10-year ARIMA forecast",
+  marketBenchmarkLabel: "10-year mean-reverting forecast",
   marketBenchmark: "Point: prices {price}% / rent {rent}% a year. 95% interval: prices {priceLow}% to {priceHigh}%, rent {rentLow}% to {rentHigh}%.",
   outcomeInterval: "Outcome gap range: {low}–{high} after {years} years",
 
@@ -263,7 +263,7 @@ const zhHant: Strings = {
   neutral: "中性",
   optimistic: "樂觀",
   scenarioGrowth: "樓價每年 {price}%，租金每年 {rent}%",
-  marketBenchmarkLabel: "10 年 ARIMA 預測",
+  marketBenchmarkLabel: "10 年均值回歸預測",
   marketBenchmark: "點預測：樓價每年 {price}%，租金每年 {rent}%。95% 區間：樓價 {priceLow}% 至 {priceHigh}%，租金 {rentLow}% 至 {rentHigh}%。",
   outcomeInterval: "{years} 年後淨資產差距區間：{low} 至 {high}",
 

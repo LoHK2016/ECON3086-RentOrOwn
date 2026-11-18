@@ -6,7 +6,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from rentorbuy.market_benchmarks import arima_forecast, derive_benchmarks, percentile
+from rentorbuy.market_benchmarks import derive_benchmarks, mean_reverting_forecast, percentile
 
 
 def test_percentile_is_interpolated():
@@ -27,13 +27,13 @@ def test_benchmark_has_three_bands():
     assert result["rent_growth"]["neutral"] == 3.0
 
 
-def test_arima_forecast_returns_point_and_intervals():
+def test_mean_reverting_forecast_returns_point_and_intervals():
     values = []
     for year in range(1996, 2027):
         for month in (1, 7):
             age = (year - 1996) * 12 + month - 1
             values.append((datetime(year, month, 1), 100 * (1.002 ** age)))
-    result = arima_forecast(values)
+    result = mean_reverting_forecast(values)
     assert result["horizon_years"] == 10
     assert "80%" in result["intervals_pct"]
     assert "95%" in result["intervals_pct"]

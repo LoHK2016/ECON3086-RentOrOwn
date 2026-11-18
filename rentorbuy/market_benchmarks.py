@@ -1,4 +1,4 @@
-"""Forecast Hong Kong housing price and rent growth with ARIMA.
+"""Forecast Hong Kong housing price and rent growth with a mean-reverting AR model.
 
 The source series are official monthly private-domestic All Classes indices
 from the Rating and Valuation Department. The forecast is a model estimate,
@@ -97,27 +97,33 @@ def derive_benchmarks(price_values, rent_values):
     }
 
 
-def arima_forecast(values, horizon_months=120):
-    """Fit log-level ARIMA candidates and forecast one horizon."""
+def mean_reverting_forecast(values, horizon_months=120):
+    """Fit a mean-reverting AR(1) model with a linear trend."""
     latest = datetime.now().year - 30
     recent = [(month, index) for month, index in values if month.year >= latest]
     if len(recent) < 36:
-        raise ValueError("not enough observations for an ARIMA forecast")
+        raise ValueError("not enough observations for a mean-reverting forecast")
 
     observed = np.array([math.log(index) for _, index in recent], dtype=float)
-    candidates = [(0, 1, 1), (1, 1, 0), (1, 1, 1), (2, 1, 1)]
+    candidates = [
+        ((1, 0, 0), "ct"),
+        ((1, 0, 0), "t"),
+        ((1, 0, 0), None),
+    ]
     best = None
-    for order in candidates:
+    for order, trend in candidates:
         try:
-            fitted = ARIMA(observed, order=order).fit()
+            fitted = ARIMA(observed, order=order, trend=trend).fit()
+            if not fitted.mle_retvals.get("converged", False):
+                continue
             if not fitted.mle_retvals.get("converged", False):
                 continue
             if best is None or fitted.aic < best["model"].aic:
-                best = {"model": fitted, "order": order}
+                best = {"model": fitted, "order": order, "trend": trend}
         except Exception:
             continue
     if best is None:
-        raise ValueError("no ARIMA candidate could be fitted")
+        raise ValueError("no mean-reverting candidate could be fitted")
 
     forecast = best["model"].get_forecast(steps=horizon_months)
     start_index = math.exp(observed[-1])
@@ -137,7 +143,8 @@ def arima_forecast(values, horizon_months=120):
         ]
 
     return {
-        "model": "ARIMA" + str(best["order"]),
+        "model": "AR1-linear-trend" if best["order"][1:] == (0, 0) else "ARIMA" + str(best["order"]),
+        "trend": best["trend"],
         "horizon_years": horizon_months // 12,
         "point_growth_pct": round(point * 100, 2),
         "intervals_pct": intervals,
@@ -145,8 +152,8 @@ def arima_forecast(values, horizon_months=120):
     }
 
 
-def arima_forecasts(price_values, rent_values):
-    """Return separate 10-year ARIMA forecasts for price and rent indices."""
+def mean_reverting_forecasts(price_values, rent_values):
+    """Return separate 10-year mean-reverting forecasts for price and rent indices."""
     latest = max(price_values[-1][0], rent_values[-1][0])
     cutoff = datetime(latest.year - 30, latest.month, 1)
     price = [(month, index) for month, index in price_values if month >= cutoff]
@@ -156,32 +163,33 @@ def arima_forecasts(price_values, rent_values):
         "source_urls": [PRICE_URL, RENT_URL],
         "history_from": cutoff.strftime("%Y-%m"),
         "history_to": latest.strftime("%Y-%m"),
-        "method": "Independent log-level ARIMA models; 10-year forecasts",
-        "price": arima_forecast(price),
-        "rent": arima_forecast(rent),
+        "method": "Independent mean-reverting AR(1) models with linear trend; 10-year forecasts",
+        "price": mean_reverting_forecast(price),
+        "rent": mean_reverting_forecast(rent),
     }
 
 
 def fetch_benchmarks():
-    """Fetch both RVD series and derive point forecasts plus intervals."""
+    """Fetch both RVD series and derive mean-reverting forecasts plus intervals."""
     price = read_monthly_index(PRICE_URL)
     rent = read_monthly_index(RENT_URL)
     historical = derive_benchmarks(price, rent)
-    arima = arima_forecasts(price, rent)
-    historical["arima"] = arima
-    historical["method"] = "Independent log-level ARIMA 10-year forecasts"
+    forecast = mean_reverting_forecasts(price, rent)
+    historical["forecast"] = forecast
+    historical["arima"] = forecast
+    historical["method"] = "Independent mean-reverting AR(1) linear-trend 10-year forecasts"
     historical["scenarios"] = {
         "pessimistic": {
-            "price_growth": arima["price"]["intervals_pct"]["95%"][0],
-            "rent_growth": arima["rent"]["intervals_pct"]["95%"][0],
+            "price_growth": forecast["price"]["intervals_pct"]["95%"][0],
+            "rent_growth": forecast["rent"]["intervals_pct"]["95%"][0],
         },
         "neutral": {
-            "price_growth": arima["price"]["point_growth_pct"],
-            "rent_growth": arima["rent"]["point_growth_pct"],
+            "price_growth": forecast["price"]["point_growth_pct"],
+            "rent_growth": forecast["rent"]["point_growth_pct"],
         },
         "optimistic": {
-            "price_growth": arima["price"]["intervals_pct"]["95%"][1],
-            "rent_growth": arima["rent"]["intervals_pct"]["95%"][1],
+            "price_growth": forecast["price"]["intervals_pct"]["95%"][1],
+            "rent_growth": forecast["rent"]["intervals_pct"]["95%"][1],
         },
     }
     return historical
