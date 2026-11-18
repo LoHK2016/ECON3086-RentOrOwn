@@ -61,16 +61,16 @@
   },
   "scenarios": {
     "pessimistic": {
-      "price_growth": -6.17,
-      "rent_growth": -4.26
+      "price_growth": -9.29,
+      "rent_growth": -6.5
     },
     "neutral": {
       "price_growth": 0.03,
       "rent_growth": 0.11
     },
     "optimistic": {
-      "price_growth": 6.63,
-      "rent_growth": 4.69
+      "price_growth": 10.3,
+      "rent_growth": 7.2
     }
   }
 }

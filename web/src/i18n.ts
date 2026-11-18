@@ -98,7 +98,8 @@ const en = {
   optimistic: "Optimistic",
   scenarioGrowth: "Prices {price}% a year, rent {rent}% a year",
   marketBenchmarkLabel: "10-year ARIMA forecast",
-  marketBenchmark: "Point: prices {price}% / rent {rent}% a year. 80% interval: prices {priceLow}% to {priceHigh}%, rent {rentLow}% to {rentHigh}%.",
+  marketBenchmark: "Point: prices {price}% / rent {rent}% a year. 95% interval: prices {priceLow}% to {priceHigh}%, rent {rentLow}% to {rentHigh}%.",
+  outcomeInterval: "Outcome gap range: {low}–{high} after {years} years",
 
   buyWins: "Buying comes out ahead",
   rentWins: "Renting comes out ahead",
@@ -263,7 +264,8 @@ const zhHant: Strings = {
   optimistic: "樂觀",
   scenarioGrowth: "樓價每年 {price}%，租金每年 {rent}%",
   marketBenchmarkLabel: "10 年 ARIMA 預測",
-  marketBenchmark: "點預測：樓價每年 {price}%，租金每年 {rent}%。80% 區間：樓價 {priceLow}% 至 {priceHigh}%，租金 {rentLow}% 至 {rentHigh}%。",
+  marketBenchmark: "點預測：樓價每年 {price}%，租金每年 {rent}%。95% 區間：樓價 {priceLow}% 至 {priceHigh}%，租金 {rentLow}% 至 {rentHigh}%。",
+  outcomeInterval: "{years} 年後淨資產差距區間：{low} 至 {high}",
 
   buyWins: "買樓較著數",
   rentWins: "租樓較著數",

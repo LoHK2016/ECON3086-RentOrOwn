@@ -172,16 +172,16 @@ def fetch_benchmarks():
     historical["method"] = "Independent log-level ARIMA 10-year forecasts"
     historical["scenarios"] = {
         "pessimistic": {
-            "price_growth": arima["price"]["intervals_pct"]["80%"][0],
-            "rent_growth": arima["rent"]["intervals_pct"]["80%"][0],
+            "price_growth": arima["price"]["intervals_pct"]["95%"][0],
+            "rent_growth": arima["rent"]["intervals_pct"]["95%"][0],
         },
         "neutral": {
             "price_growth": arima["price"]["point_growth_pct"],
             "rent_growth": arima["rent"]["point_growth_pct"],
         },
         "optimistic": {
-            "price_growth": arima["price"]["intervals_pct"]["80%"][1],
-            "rent_growth": arima["rent"]["intervals_pct"]["80%"][1],
+            "price_growth": arima["price"]["intervals_pct"]["95%"][1],
+            "rent_growth": arima["rent"]["intervals_pct"]["95%"][1],
         },
     }
     return historical

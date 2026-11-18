@@ -389,10 +389,10 @@ export default function App() {
                   {t("marketBenchmark", {
                     price: data.market_benchmark?.arima?.price.point_growth_pct ?? data.scenarios.neutral.price_growth,
                     rent: data.market_benchmark?.arima?.rent.point_growth_pct ?? data.scenarios.neutral.rent_growth,
-                    priceLow: data.market_benchmark?.arima?.price.intervals_pct["80%"][0] ?? data.scenarios.pessimistic.price_growth,
-                    priceHigh: data.market_benchmark?.arima?.price.intervals_pct["80%"][1] ?? data.scenarios.optimistic.price_growth,
-                    rentLow: data.market_benchmark?.arima?.rent.intervals_pct["80%"][0] ?? data.scenarios.pessimistic.rent_growth,
-                    rentHigh: data.market_benchmark?.arima?.rent.intervals_pct["80%"][1] ?? data.scenarios.optimistic.rent_growth,
+                    priceLow: data.market_benchmark?.arima?.price.intervals_pct["95%"][0] ?? data.scenarios.pessimistic.price_growth,
+                    priceHigh: data.market_benchmark?.arima?.price.intervals_pct["95%"][1] ?? data.scenarios.optimistic.price_growth,
+                    rentLow: data.market_benchmark?.arima?.rent.intervals_pct["95%"][0] ?? data.scenarios.pessimistic.rent_growth,
+                    rentHigh: data.market_benchmark?.arima?.rent.intervals_pct["95%"][1] ?? data.scenarios.optimistic.rent_growth,
                   })}
                 </span>
               }
@@ -478,7 +478,11 @@ export default function App() {
                     {t(result.verdict === "buy" ? "buyWins" : "rentWins")}
                   </p>
                   <p className="mt-1 text-[17px]">
-                    {t("by", { gap: money(Math.abs(result.gap)), years: used.horizon_years })}
+                    {t("outcomeInterval", {
+                      low: money(Math.abs(results.pessimistic.gap)),
+                      high: money(Math.abs(results.optimistic.gap)),
+                      years: used.horizon_years,
+                    })}
                   </p>
                   <p className="mt-1 text-[15px] text-muted-foreground">
                     {result.break_even_year !== null
@@ -502,7 +506,12 @@ export default function App() {
                         {t("renting")}
                       </span>
                     </div>
-                    <NetWorthChart result={result} lang={lang} />
+                    <NetWorthChart
+                      point={results.neutral}
+                      low={results.pessimistic}
+                      high={results.optimistic}
+                      lang={lang}
+                    />
                   </div>
                 </Section>
 
