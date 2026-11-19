@@ -481,7 +481,7 @@ export default function App() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => exportCsv({ results, selected: result, scenario, estate, lang })}
+                      onClick={() => exportCsv({ results, selected: result, scenario, estate, flat, lang })}
                     >
                       <FileDown />
                       {t("exportCsv")}
@@ -490,7 +490,7 @@ export default function App() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => exportXlsx({ results, selected: result, scenario, estate, lang })}
+                      onClick={() => exportXlsx({ results, selected: result, scenario, estate, flat, lang })}
                     >
                       <FileDown />
                       {t("exportXlsx")}
