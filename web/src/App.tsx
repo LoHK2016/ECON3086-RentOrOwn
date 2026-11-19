@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { AlertTriangle, ExternalLink } from "lucide-react"
+import { AlertTriangle, ExternalLink, FileDown } from "lucide-react"
 import { DepositRanking } from "@/components/DepositRanking"
 import { FlatPicker } from "@/components/FlatPicker"
 import { NetWorthChart } from "@/components/NetWorthChart"
@@ -18,6 +18,8 @@ import { money, percent } from "@/lib/format"
 import { compareScenarios, loadCalculator } from "@/lib/python"
 import { SCENARIO_NAMES, type Estate, type Flat, type Result, type ScenarioName, type Snapshot } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { exportCsv, exportXlsx } from "@/lib/export"
 
 type Shift = "-1" | "0" | "1"
 type InvestMode = "deposit" | "hk" | "us" | "custom"
@@ -474,6 +476,26 @@ export default function App() {
             {result && results && used && (
               <>
                 <div className="rounded-[var(--radius)] bg-card p-5">
+                  <div className="mb-3 flex flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportCsv({ results, selected: result, scenario, estate, lang })}
+                    >
+                      <FileDown />
+                      {t("exportCsv")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportXlsx({ results, selected: result, scenario, estate, lang })}
+                    >
+                      <FileDown />
+                      {t("exportXlsx")}
+                    </Button>
+                  </div>
                   <p className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">{t(scenario)}</p>
                   <p
                     className={cn(
