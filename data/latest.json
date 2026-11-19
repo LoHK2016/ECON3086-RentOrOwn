@@ -1,9 +1,9 @@
 {
-  "date": "2026-11-18",
+  "date": "2026-11-19",
   "rates": {
     "_note": "Read from the HKMA API on 2026-11-11; used only if the API fails before any snapshot exists.",
-    "hibor_1m": 2.68024,
-    "hibor_date": "2026-11-17",
+    "hibor_1m": 2.68,
+    "hibor_date": "2026-11-18",
     "prime": 5,
     "prime_since": "2025-10-31",
     "stale": false
@@ -11,15 +11,15 @@
   "bank_primes": {
     "HSBC": {
       "prime": 5.0,
-      "date": "2026-11-18"
+      "date": "2026-11-19"
     },
     "BOCHK": {
       "prime": 5.0,
-      "date": "2026-11-18"
+      "date": "2026-11-19"
     },
     "Hang Seng": {
       "prime": 5.0,
-      "date": "2026-11-18"
+      "date": "2026-11-19"
     }
   },
   "estates": [
@@ -33,7 +33,7 @@
       "district_zh": "東區",
       "district_en": "Eastern",
       "price_per_ft": 18641.0,
-      "rent_per_ft": 49.0,
+      "rent_per_ft": 48.5,
       "transactions": null,
       "for_sale": 294,
       "for_rent": 120,
@@ -51,7 +51,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/太古城",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "1",
         "districtId": "3",
@@ -70,7 +70,7 @@
       "district_zh": "東區",
       "district_en": "Eastern",
       "price_per_ft": 15059.0,
-      "rent_per_ft": 45.5,
+      "rent_per_ft": 46.0,
       "transactions": null,
       "for_sale": 91,
       "for_rent": 24,
@@ -88,7 +88,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/康怡花園",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "1",
         "districtId": "3",
@@ -125,7 +125,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/杏花邨",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "1",
         "districtId": "1",
@@ -143,7 +143,7 @@
       "region_en": "Hong Kong Island",
       "district_zh": "南區",
       "district_en": "Southern",
-      "price_per_ft": 15156.5,
+      "price_per_ft": 15432.0,
       "rent_per_ft": 43.5,
       "transactions": null,
       "for_sale": 142,
@@ -162,7 +162,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/海怡半島",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "1",
         "districtId": "13",
@@ -180,7 +180,7 @@
       "region_en": "Hong Kong Island",
       "district_zh": "東區",
       "district_en": "Eastern",
-      "price_per_ft": 17618.5,
+      "price_per_ft": 17923.0,
       "rent_per_ft": 47.0,
       "transactions": null,
       "for_sale": 55,
@@ -199,7 +199,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/藍灣半島",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "1",
         "districtId": "1",
@@ -240,7 +240,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/美孚新邨",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "2",
         "districtId": "30",
@@ -258,7 +258,7 @@
       "region_en": "Kowloon",
       "district_zh": "九龍城",
       "district_en": "Kowloon City",
-      "price_per_ft": 15555.0,
+      "price_per_ft": 15716.5,
       "rent_per_ft": 47.0,
       "transactions": null,
       "for_sale": 81,
@@ -281,7 +281,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/黃埔花園",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "2",
         "districtId": "22",
@@ -318,7 +318,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/麗港城",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "2",
         "districtId": "15",
@@ -355,7 +355,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/匯景花園",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "2",
         "districtId": "46",
@@ -373,7 +373,7 @@
       "region_en": "Kowloon",
       "district_zh": "觀塘",
       "district_en": "Kwun Tong",
-      "price_per_ft": 13820.0,
+      "price_per_ft": 13830.0,
       "rent_per_ft": 44.0,
       "transactions": null,
       "for_sale": 64,
@@ -388,7 +388,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/淘大花園",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "2",
         "districtId": "17",
@@ -425,7 +425,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/德福花園",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "2",
         "districtId": "18",
@@ -462,7 +462,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/柏景灣",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "2",
         "districtId": "26",
@@ -503,7 +503,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/擎天半島",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "2",
         "districtId": "29",
@@ -540,7 +540,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/新都城",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -618,7 +618,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/維景灣畔",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -636,8 +636,8 @@
       "region_en": "New Territories",
       "district_zh": "西貢",
       "district_en": "Sai Kung",
-      "price_per_ft": 15314.0,
-      "rent_per_ft": 41.0,
+      "price_per_ft": 15483.0,
+      "rent_per_ft": 38.5,
       "transactions": null,
       "for_sale": 1730,
       "for_rent": 1174,
@@ -667,7 +667,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/日出康城",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -704,7 +704,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/沙田第一城",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "38",
@@ -741,7 +741,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/新港城",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "33",
@@ -759,7 +759,7 @@
       "region_en": "New Territories",
       "district_zh": "沙田",
       "district_en": "Sha Tin",
-      "price_per_ft": 12210.5,
+      "price_per_ft": 12265.5,
       "rent_per_ft": 38.0,
       "transactions": null,
       "for_sale": 51,
@@ -778,7 +778,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/翠擁華庭",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "33",
@@ -819,7 +819,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/大埔中心",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "37",
@@ -837,8 +837,8 @@
       "region_en": "New Territories",
       "district_zh": "荃灣",
       "district_en": "Tsuen Wan",
-      "price_per_ft": 10838.5,
-      "rent_per_ft": 37.0,
+      "price_per_ft": 10771.0,
+      "rent_per_ft": 36.5,
       "transactions": null,
       "for_sale": 107,
       "for_rent": 29,
@@ -860,7 +860,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/荃灣中心",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "39",
@@ -878,7 +878,7 @@
       "region_en": "New Territories",
       "district_zh": "荃灣",
       "district_en": "Tsuen Wan",
-      "price_per_ft": 14307.5,
+      "price_per_ft": 14387.5,
       "rent_per_ft": 38.0,
       "transactions": null,
       "for_sale": 59,
@@ -897,7 +897,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/愉景新城",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "39",
@@ -934,7 +934,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/盈翠半島",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "40",
@@ -971,7 +971,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/灝景灣",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "40",
@@ -1008,7 +1008,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/嘉湖山莊",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "42",
@@ -1045,7 +1045,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/映灣園",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "44",
@@ -1063,8 +1063,8 @@
       "region_en": "New Territories",
       "district_zh": "屯門",
       "district_en": "Tuen Mun",
-      "price_per_ft": 11107.0,
-      "rent_per_ft": 37.0,
+      "price_per_ft": 11279.0,
+      "rent_per_ft": 37.5,
       "transactions": null,
       "for_sale": 61,
       "for_rent": 43,
@@ -1082,7 +1082,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/屯門市廣場",
       "price_source": "centaline",
-      "scraped": "2026-11-18",
+      "scraped": "2026-11-19",
       "hsbc": {
         "zoneId": "3",
         "districtId": "43",
@@ -1147,7 +1147,7 @@
         "6": 2.2
       },
       "url": "https://www.hsbc.com.hk/accounts/offers/deposits/",
-      "date": "2026-11-18"
+      "date": "2026-11-19"
     },
     "BOCHK": {
       "rates": {
@@ -1155,7 +1155,7 @@
         "6": 2.4
       },
       "url": "https://www.bochk.com/en/deposits/promotion/timedeposits.html",
-      "date": "2026-11-18"
+      "date": "2026-11-19"
     },
     "Standard Chartered": {
       "rates": {
@@ -1164,7 +1164,7 @@
         "12": 3.1
       },
       "url": "https://www.sc.com/hk/deposits/online-time-deposit/",
-      "date": "2026-11-18"
+      "date": "2026-11-19"
     },
     "Mox": {
       "rates": {
@@ -1175,23 +1175,23 @@
         "24": 2.8
       },
       "url": "https://mox.com/promotions/time-deposit/",
-      "date": "2026-11-18"
+      "date": "2026-11-19"
     },
     "eleBank": {
       "rates": {
         "1": 0.5,
         "2": 2.05,
-        "3": 2.6,
-        "4": 2.75,
-        "6": 3.0,
-        "9": 3.05,
-        "12": 3.35,
-        "18": 3.45,
-        "24": 3.5,
-        "36": 3.5
+        "3": 2.7,
+        "4": 2.8,
+        "6": 3.05,
+        "9": 3.1,
+        "12": 3.4,
+        "18": 3.5,
+        "24": 3.55,
+        "36": 3.55
       },
       "url": "https://www.elebank.com/",
-      "date": "2026-11-18"
+      "date": "2026-11-19"
     }
   },
   "deposit_ranking": {
@@ -1208,7 +1208,7 @@
       },
       {
         "bank": "eleBank",
-        "rate": 2.6,
+        "rate": 2.7,
         "url": "https://www.elebank.com/"
       },
       {
@@ -1225,7 +1225,7 @@
     "6": [
       {
         "bank": "eleBank",
-        "rate": 3.0,
+        "rate": 3.05,
         "url": "https://www.elebank.com/"
       },
       {
@@ -1252,7 +1252,7 @@
     "12": [
       {
         "bank": "eleBank",
-        "rate": 3.35,
+        "rate": 3.4,
         "url": "https://www.elebank.com/"
       },
       {
@@ -1268,7 +1268,7 @@
     ]
   },
   "investment_return": {
-    "value": 3.35,
+    "value": 3.4,
     "bank": "eleBank",
     "months": "12",
     "provisional": false
