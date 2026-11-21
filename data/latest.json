@@ -1,9 +1,9 @@
 {
-  "date": "2026-11-20",
+  "date": "2026-11-21",
   "rates": {
     "_note": "Read from the HKMA API on 2026-11-11; used only if the API fails before any snapshot exists.",
-    "hibor_1m": 2.68,
-    "hibor_date": "2026-11-19",
+    "hibor_1m": 2.71167,
+    "hibor_date": "2026-11-20",
     "prime": 5,
     "prime_since": "2025-10-31",
     "stale": false
@@ -11,15 +11,15 @@
   "bank_primes": {
     "HSBC": {
       "prime": 5.0,
-      "date": "2026-11-20"
+      "date": "2026-11-21"
     },
     "BOCHK": {
       "prime": 5.0,
-      "date": "2026-11-20"
+      "date": "2026-11-21"
     },
     "Hang Seng": {
       "prime": 5.0,
-      "date": "2026-11-20"
+      "date": "2026-11-21"
     }
   },
   "estates": [
@@ -33,10 +33,10 @@
       "district_zh": "東區",
       "district_en": "Eastern",
       "price_per_ft": 16856,
-      "rent_per_ft": 47.43,
+      "rent_per_ft": 48,
       "transactions": 7,
       "for_sale": 298,
-      "for_rent": 124,
+      "for_rent": 125,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -51,7 +51,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/港島-太古-太古城-E00024",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "1",
         "districtId": "3",
@@ -69,9 +69,9 @@
       "district_zh": "東區",
       "district_en": "Eastern",
       "price_per_ft": 14454,
-      "rent_per_ft": 41.55,
-      "transactions": 13,
-      "for_sale": 91,
+      "rent_per_ft": 44,
+      "transactions": 12,
+      "for_sale": 90,
       "for_rent": 25,
       "min_area": null,
       "max_area": null,
@@ -87,7 +87,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/港島-鰂魚涌-康怡花園-E00025",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "1",
         "districtId": "3",
@@ -108,7 +108,7 @@
       "rent_per_ft": 43,
       "transactions": 6,
       "for_sale": 77,
-      "for_rent": 11,
+      "for_rent": 12,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -123,7 +123,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/港島-杏花邨-杏花邨-E00023",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "1",
         "districtId": "1",
@@ -140,10 +140,10 @@
       "region_en": "Hong Kong Island",
       "district_zh": "南區",
       "district_en": "Southern",
-      "price_per_ft": 15039,
+      "price_per_ft": 15158,
       "rent_per_ft": 42.37,
-      "transactions": 11,
-      "for_sale": 143,
+      "transactions": 14,
+      "for_sale": 144,
       "for_rent": 27,
       "min_area": null,
       "max_area": null,
@@ -159,7 +159,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/港島-鴨脷洲-海怡半島-E00021",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "1",
         "districtId": "13",
@@ -177,7 +177,7 @@
       "district_zh": "東區",
       "district_en": "Eastern",
       "price_per_ft": 19113,
-      "rent_per_ft": 48.14,
+      "rent_per_ft": 47,
       "transactions": 9,
       "for_sale": 54,
       "for_rent": 12,
@@ -195,7 +195,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/港島-小西灣-藍灣半島-E12477",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "1",
         "districtId": "1",
@@ -212,11 +212,11 @@
       "region_en": "Kowloon",
       "district_zh": "深水埗",
       "district_en": "Sham Shui Po",
-      "price_per_ft": 11237,
+      "price_per_ft": 11157,
       "rent_per_ft": 37.44,
-      "transactions": 16,
+      "transactions": 17,
       "for_sale": 208,
-      "for_rent": 39,
+      "for_rent": 38,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -235,7 +235,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-美孚站-美孚新邨-E00061",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "2",
         "districtId": "30",
@@ -252,10 +252,10 @@
       "region_en": "Kowloon",
       "district_zh": "九龍城",
       "district_en": "Kowloon City",
-      "price_per_ft": 13871,
+      "price_per_ft": 13976,
       "rent_per_ft": 45,
-      "transactions": 15,
-      "for_sale": 79,
+      "transactions": 16,
+      "for_sale": 78,
       "for_rent": 11,
       "min_area": null,
       "max_area": null,
@@ -275,7 +275,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-黃埔-黃埔花園-E00037",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "2",
         "districtId": "22",
@@ -293,7 +293,7 @@
       "district_zh": "觀塘",
       "district_en": "Kwun Tong",
       "price_per_ft": 11836,
-      "rent_per_ft": 35.72,
+      "rent_per_ft": 36,
       "transactions": 14,
       "for_sale": 87,
       "for_rent": 25,
@@ -311,7 +311,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-藍田-麗港城-E00053",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "2",
         "districtId": "15",
@@ -332,7 +332,7 @@
       "rent_per_ft": 40,
       "transactions": 4,
       "for_sale": 25,
-      "for_rent": 7,
+      "for_rent": 8,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -347,7 +347,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-藍田-匯景花園-E00054",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "2",
         "districtId": "46",
@@ -364,11 +364,11 @@
       "region_en": "Kowloon",
       "district_zh": "觀塘",
       "district_en": "Kwun Tong",
-      "price_per_ft": 12933,
+      "price_per_ft": 13001,
       "rent_per_ft": 45.29,
       "transactions": 11,
-      "for_sale": 65,
-      "for_rent": 20,
+      "for_sale": 66,
+      "for_rent": 19,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -379,7 +379,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-九龍灣-淘大花園-E00055",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "2",
         "districtId": "17",
@@ -396,9 +396,9 @@
       "region_en": "Kowloon",
       "district_zh": "觀塘",
       "district_en": "Kwun Tong",
-      "price_per_ft": 10732,
+      "price_per_ft": 10844,
       "rent_per_ft": 34.78,
-      "transactions": 8,
+      "transactions": 9,
       "for_sale": 59,
       "for_rent": 23,
       "min_area": null,
@@ -415,7 +415,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-九龍灣-德福花園-E00056",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "2",
         "districtId": "18",
@@ -451,7 +451,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-奧運站-柏景灣-E12424",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "2",
         "districtId": "26",
@@ -469,8 +469,8 @@
       "district_zh": "油尖旺",
       "district_en": "Yau Tsim Mong",
       "price_per_ft": 29564,
-      "rent_per_ft": 59.82,
-      "transactions": 5,
+      "rent_per_ft": 62,
+      "transactions": 4,
       "for_sale": 56,
       "for_rent": 18,
       "min_area": 620,
@@ -491,7 +491,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-九龍站-擎天半島-E12827",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "2",
         "districtId": "29",
@@ -508,11 +508,11 @@
       "region_en": "New Territories",
       "district_zh": "西貢",
       "district_en": "Sai Kung",
-      "price_per_ft": 14832,
-      "rent_per_ft": 45.61,
-      "transactions": 8,
-      "for_sale": 234,
-      "for_rent": 258,
+      "price_per_ft": 14902,
+      "rent_per_ft": 45,
+      "transactions": 7,
+      "for_sale": 235,
+      "for_rent": 255,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -527,7 +527,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-寶琳-新都城-E00142",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -547,8 +547,8 @@
       "price_per_ft": 16537,
       "rent_per_ft": 45,
       "transactions": 4,
-      "for_sale": 168,
-      "for_rent": 161,
+      "for_sale": 167,
+      "for_rent": 162,
       "min_area": 384,
       "max_area": 1516,
       "by_room": {
@@ -563,7 +563,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-將軍澳市中心-將軍澳中心-E12822",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -582,7 +582,7 @@
       "district_en": "Sai Kung",
       "price_per_ft": 16258,
       "rent_per_ft": 41.74,
-      "transactions": 6,
+      "transactions": 7,
       "for_sale": 180,
       "for_rent": 124,
       "min_area": null,
@@ -603,7 +603,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-調景嶺-維景灣畔-E12480",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -620,11 +620,11 @@
       "region_en": "New Territories",
       "district_zh": "西貢",
       "district_en": "Sai Kung",
-      "price_per_ft": 12683,
+      "price_per_ft": 12719,
       "rent_per_ft": 40.08,
-      "transactions": 46,
-      "for_sale": 1733,
-      "for_rent": 1177,
+      "transactions": 44,
+      "for_sale": 1737,
+      "for_rent": 1181,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -651,7 +651,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/九龍-康城-日出康城-E000004419",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -668,11 +668,11 @@
       "region_en": "New Territories",
       "district_zh": "沙田",
       "district_en": "Sha Tin",
-      "price_per_ft": 14015,
+      "price_per_ft": 13778,
       "rent_per_ft": 48.46,
-      "transactions": 19,
-      "for_sale": 203,
-      "for_rent": 103,
+      "transactions": 17,
+      "for_sale": 205,
+      "for_rent": 112,
       "min_area": 284,
       "max_area": 854,
       "by_room": {
@@ -687,7 +687,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-第一城-石門-沙田第一城-E00012",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "38",
@@ -705,10 +705,10 @@
       "district_zh": "沙田",
       "district_en": "Sha Tin",
       "price_per_ft": 14539,
-      "rent_per_ft": 46.23,
+      "rent_per_ft": 44,
       "transactions": 7,
       "for_sale": 115,
-      "for_rent": 95,
+      "for_rent": 92,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -723,7 +723,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-馬鞍山-新港城-E00007",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "33",
@@ -741,7 +741,7 @@
       "district_zh": "沙田",
       "district_en": "Sha Tin",
       "price_per_ft": 11167,
-      "rent_per_ft": 35.95,
+      "rent_per_ft": 35,
       "transactions": 4,
       "for_sale": 53,
       "for_rent": 21,
@@ -759,7 +759,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-馬鞍山-翠擁華庭-E12139",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "33",
@@ -777,7 +777,7 @@
       "district_zh": "大埔",
       "district_en": "Tai Po",
       "price_per_ft": 12621,
-      "rent_per_ft": 45,
+      "rent_per_ft": 44,
       "transactions": 2,
       "for_sale": 39,
       "for_rent": 20,
@@ -799,7 +799,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-大埔市中心-大埔中心-E00072",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "37",
@@ -816,11 +816,11 @@
       "region_en": "New Territories",
       "district_zh": "荃灣",
       "district_en": "Tsuen Wan",
-      "price_per_ft": 9519,
+      "price_per_ft": 9619,
       "rent_per_ft": 35.49,
-      "transactions": 13,
+      "transactions": 14,
       "for_sale": 103,
-      "for_rent": 28,
+      "for_rent": 29,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -839,7 +839,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-荃灣市中心-荃灣中心-E00039",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "39",
@@ -857,9 +857,9 @@
       "district_zh": "荃灣",
       "district_en": "Tsuen Wan",
       "price_per_ft": 14098,
-      "rent_per_ft": 37.02,
+      "rent_per_ft": 37,
       "transactions": 6,
-      "for_sale": 59,
+      "for_sale": 58,
       "for_rent": 13,
       "min_area": null,
       "max_area": null,
@@ -875,7 +875,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-荃灣市中心-愉景新城-E00722",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "39",
@@ -892,9 +892,9 @@
       "region_en": "New Territories",
       "district_zh": "葵青",
       "district_en": "Kwai Tsing",
-      "price_per_ft": 17579,
+      "price_per_ft": 17655,
       "rent_per_ft": 45.44,
-      "transactions": 6,
+      "transactions": 7,
       "for_sale": 68,
       "for_rent": 41,
       "min_area": null,
@@ -911,7 +911,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-青衣-盈翠半島-E11803",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "40",
@@ -928,9 +928,9 @@
       "region_en": "New Territories",
       "district_zh": "葵青",
       "district_en": "Kwai Tsing",
-      "price_per_ft": 17595,
+      "price_per_ft": 16116,
       "rent_per_ft": 42.86,
-      "transactions": 1,
+      "transactions": 2,
       "for_sale": 55,
       "for_rent": 18,
       "min_area": null,
@@ -947,7 +947,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-青衣-灝景灣-E11414",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "40",
@@ -964,11 +964,11 @@
       "region_en": "New Territories",
       "district_zh": "元朗",
       "district_en": "Yuen Long",
-      "price_per_ft": 8548,
+      "price_per_ft": 8529,
       "rent_per_ft": 25.6,
-      "transactions": 41,
-      "for_sale": 420,
-      "for_rent": 174,
+      "transactions": 43,
+      "for_sale": 421,
+      "for_rent": 175,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -983,7 +983,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-天水圍-嘉湖山莊-E00041",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "42",
@@ -1003,8 +1003,8 @@
       "price_per_ft": 9853,
       "rent_per_ft": 31,
       "transactions": 11,
-      "for_sale": 179,
-      "for_rent": 76,
+      "for_sale": 180,
+      "for_rent": 75,
       "min_area": null,
       "max_area": null,
       "by_room": {
@@ -1019,7 +1019,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-東涌-映灣園-E000000070",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "44",
@@ -1055,7 +1055,7 @@
       },
       "source": "https://www.midland.com.hk/zh-hk/estate/新界-屯門市中心-屯門市廣場-E00091",
       "price_source": "midland",
-      "scraped": "2026-11-20",
+      "scraped": "2026-11-21",
       "hsbc": {
         "zoneId": "3",
         "districtId": "43",
@@ -1119,7 +1119,7 @@
         "6": 2.2
       },
       "url": "https://www.hsbc.com.hk/accounts/offers/deposits/",
-      "date": "2026-11-20"
+      "date": "2026-11-21"
     },
     "BOCHK": {
       "rates": {
@@ -1127,7 +1127,7 @@
         "6": 2.4
       },
       "url": "https://www.bochk.com/en/deposits/promotion/timedeposits.html",
-      "date": "2026-11-20"
+      "date": "2026-11-21"
     },
     "Standard Chartered": {
       "rates": {
@@ -1136,7 +1136,7 @@
         "12": 3.1
       },
       "url": "https://www.sc.com/hk/deposits/online-time-deposit/",
-      "date": "2026-11-20"
+      "date": "2026-11-21"
     },
     "Mox": {
       "rates": {
@@ -1147,7 +1147,7 @@
         "24": 2.8
       },
       "url": "https://mox.com/promotions/time-deposit/",
-      "date": "2026-11-20"
+      "date": "2026-11-21"
     },
     "eleBank": {
       "rates": {
@@ -1163,7 +1163,7 @@
         "36": 3.55
       },
       "url": "https://www.elebank.com/",
-      "date": "2026-11-20"
+      "date": "2026-11-21"
     }
   },
   "deposit_ranking": {
