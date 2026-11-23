@@ -6,6 +6,8 @@
 **Does:** one Comparison, month by month (`comparison.py`), and its parts: stamp duty (`stamp_duty.py`),
 mortgage rate, payment, loan-to-value cap and insurance (`mortgage.py`), buying and holding costs
 (`buy_side.py`), rent and savings growth (`rent_side.py`), time deposit ranking (`deposits.py`).
+It also ranks Estate-level buy and rent affordability estimates (`recommendations.py`) from a supplied
+snapshot; it does not create or imply individual Flat listings.
 **Does not:** fetch anything, read files, or format numbers for display.
 
 ## How one Comparison runs
@@ -39,6 +41,8 @@ price and rent growth. That is what the page calls.
 - In `fill_defaults`, `None` means "use the default", so the page sends `None` to ask for one.
   `rate_shift` is added after the mortgage rate is worked out, so it shifts a typed rate too.
 - `yearly_costs` holds the first month of each year only, not a yearly total.
+- Recommendations compare housing costs with a configurable share of take-home pay, after monthly debt;
+  "Stretch" ends at 125% of that budget. Purchase cash shortfalls are always labelled "Risky".
 - `deposits.py` runs in the daily scraper (the ranking is saved in the snapshot), not on the page. It lives
   here because it is pure maths.
 - Every name a result uses (Net Worth Outcome, Break-even Year…) is defined in `CONTEXT.md`.

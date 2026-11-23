@@ -3,6 +3,7 @@
 Should you buy a Hong Kong home, or rent it and invest the difference? An ECON3086 group project.
 
 - `rentorbuy/calc/`: the calculator, pure Python. It runs in the browser through Pyodide.
+- `rentorbuy/calc/recommendations.py`: screens Estate-level buy and rent estimates against take-home pay, debts and available cash.
 - `rentorbuy/valuation.py`: picks a specific flat and gets HSBC's valuation, live from the visitor's browser.
 - `rentorbuy/scrapers/`: daily scrapers (Midland estate prices and rents, with Centaline's asking prices when Midland refuses us; HKMA rates, each bank's prime rate, HKD new-fund time deposit rates), run by GitHub Actions.
 - `rentorbuy/etf_returns.py`: past returns of the Tracker Fund (2800.HK) and SPY, worked out with pandas from monthly prices that `rentorbuy/scrapers/etf.py` downloads with yfinance. Run by hand every few months, not daily.

@@ -12,7 +12,9 @@ results (`App.tsx`, `components/`).
 `scripts/copy-python.mjs` runs before `dev` and `build`. It copies `rentorbuy/calc/*.py`,
 `rentorbuy/valuation.py`, `rentorbuy/browser.py` and `data/latest.json` into `public/` (ignored by git;
 edit the originals). `src/lib/python.ts` loads Pyodide from jsDelivr, writes those files into it, and calls
-`rentorbuy.compare_scenarios` for the Comparison.
+`rentorbuy.compare_scenarios` for the Comparison and `rentorbuy.recommend_estates` for Estate-level
+affordability suggestions. The recommender uses only Estate averages and available bedroom averages;
+it does not imply individual Flat listings.
 
 ## The flat picker
 

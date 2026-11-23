@@ -19,6 +19,7 @@ from rentorbuy.calc.mortgage import (
 )
 from rentorbuy.calc.buy_side import upfront_costs, home_equity, monthly_holding_costs
 from rentorbuy.calc.comparison import compare, compare_scenarios
+from rentorbuy.calc.recommendations import recommend_estates
 
 
 def close(a, b, tolerance=0.01):
@@ -238,6 +239,90 @@ def test_missing_input():
         assert False, "should have raised"
     except ValueError:
         pass
+
+
+def test_estate_recommendations_and_stress_test():
+    estates = [{
+        "id": "E1", "name_en": "Harbour Estate", "name_zh": "海港屋苑",
+        "region_en": "Hong Kong Island", "region_zh": "香港島",
+        "district_en": "Eastern", "district_zh": "東區",
+        "price_per_ft": 10_000, "rent_per_ft": 30,
+        "by_room": {"2": {"price_per_ft": 9_000, "rent_per_ft": 28}},
+        "source": "https://example.test/estate", "scraped": "2026-11-20",
+        "price_source": "midland",
+    }]
+    result = recommend_estates(estates, {
+        "monthly_income": 50_000, "monthly_debt": 2_000,
+        "down_payment": 250_000, "savings": 50_000,
+        "saleable_area": 500, "mortgage_rate": 0, "mortgage_years": 10,
+        "comfortable_pct": 30,
+    })
+    rent = next(item for item in result if item["mode"] == "rent")
+    buy = next(item for item in result if item["mode"] == "buy")
+    assert rent["monthly_costs"]["total"] == 15_000  # 500 sq ft x $30 rent/sq ft
+    assert rent["housing_pct"] == 30  # $15,000 / $50,000 take-home pay
+    assert rent["label"] == "comfortable"
+    # $5M price, 90% mortgage, 0% over 10 years: $4.5M / 120 = $37,500.
+    # Add $1,500 management, $750 rates, $450 government rent, and $833.33 upkeep.
+    assert close(buy["monthly_costs"]["total"], 41_033.33)
+    assert buy["upfront"]["loan"] == 4_500_000  # 90% x $5M price
+    # Upfront cash: $500K down + $112.5K duty + $50K agent + $10K legal + $139.5K insurance = $812K.
+    assert buy["upfront"]["total_cash"] == 812_000
+    # The user has $250K + $50K = $300K for the $812K upfront estimate.
+    assert buy["cash_shortfall"] == 512_000
+    assert buy["label"] == "risky"
+    assert buy["stress"]["monthly_cost"] > buy["monthly_costs"]["total"]
+    assert buy["stress"]["monthly_income"] == 40_000  # $50K take-home reduced by 20%
+    assert buy["stress"]["label"] == "risky"
+
+
+def test_estate_recommendations_filter_only_known_bedrooms():
+    estates = [{
+        "id": "E1", "name_en": "Harbour Estate", "name_zh": "海港屋苑",
+        "region_en": "Hong Kong Island", "region_zh": "香港島",
+        "district_en": "Eastern", "district_zh": "東區",
+        "price_per_ft": 10_000, "rent_per_ft": 30,
+        "by_room": {"2": {"price_per_ft": 9_000, "rent_per_ft": 28}},
+        "source": "https://example.test/estate",
+    }]
+    result = recommend_estates(estates, {
+        "monthly_income": 50_000, "saleable_area": 500,
+        "mortgage_rate": 3, "bedrooms": "3", "mode": "rent",
+    })
+    assert result == []  # no bedroom-3 data means no fabricated bedroom-3 estimate
+
+
+def test_preferred_payment_tightens_recommendation_boundary():
+    estate = [{
+        "id": "E1", "name_en": "Harbour Estate", "name_zh": "海港屋苑",
+        "region_en": "Hong Kong Island", "region_zh": "香港島",
+        "district_en": "Eastern", "district_zh": "東區",
+        "price_per_ft": 10_000, "rent_per_ft": 30,
+        "source": "https://example.test/estate",
+    }]
+    result = recommend_estates(estate, {
+        "monthly_income": 50_000, "saleable_area": 500,
+        "mortgage_rate": 3, "mode": "rent", "preferred_payment": 10_000,
+    })[0]
+    assert result["monthly_costs"]["total"] == 15_000  # 500 sq ft x $30 rent/sq ft
+    assert result["comfortable_budget"] == 10_000  # min($50K x 30%, $10K preferred)
+    assert result["stretch_budget"] == 12_500  # $10K x 125%
+    assert result["label"] == "risky"
+
+
+def test_recommendations_use_the_bank_rate_formula():
+    estate = [{
+        "id": "E1", "name_en": "Harbour Estate", "name_zh": "海港屋苑",
+        "region_en": "Hong Kong Island", "region_zh": "香港島",
+        "district_en": "Eastern", "district_zh": "東區",
+        "price_per_ft": 10_000, "rent_per_ft": 30,
+        "source": "https://example.test/estate",
+    }]
+    result = recommend_estates(estate, {
+        "monthly_income": 50_000, "saleable_area": 500, "mode": "rent",
+        "hibor": 2.6, "prime": 5, "hibor_spread": 1.3, "prime_discount": 1.75,
+    })[0]
+    assert result["mortgage_rate"] == 3.25  # min(2.6 + 1.3, 5 - 1.75)
 
 
 if __name__ == "__main__":
