@@ -93,8 +93,8 @@ function comparison(verdict: "buy" | "rent", gap: number): Result {
 }
 
 const scenarios: Record<ScenarioName, Result> = {
-  pessimistic: comparison("rent", -250_000),
-  neutral: comparison("rent", -50_000),
+  conservative: comparison("rent", -250_000),
+  normal: comparison("rent", -50_000),
   optimistic: comparison("buy", 125_000),
 }
 
@@ -104,8 +104,8 @@ const snapshot: Snapshot = {
   estates: [estate],
   bank_plans: [plan],
   scenarios: {
-    pessimistic: { price_growth: -2, rent_growth: 0 },
-    neutral: { price_growth: 2, rent_growth: 1 },
+    conservative: { price_growth: 1, rent_growth: 1 },
+    normal: { price_growth: 3, rent_growth: 2 },
     optimistic: { price_growth: 5, rent_growth: 3 },
   },
   investment_return: { value: 2, provisional: false, bank: "Example Bank" },
@@ -119,9 +119,9 @@ describe("PDF report", () => {
         estate={estate}
         data={snapshot}
         flat={null}
-        result={scenarios.neutral}
+        result={scenarios.normal}
         results={scenarios}
-        scenario="neutral"
+        scenario="normal"
         plan={plan}
         prime={5}
         investmentSource="Example Bank, HKD new funds."
@@ -140,6 +140,28 @@ describe("PDF report", () => {
     ])
   })
 
+  it("reports the selected P-rate and its bank source", () => {
+    const markup = renderToStaticMarkup(
+      <PdfReport
+        lang="en"
+        estate={estate}
+        data={snapshot}
+        flat={null}
+        result={scenarios.normal}
+        results={scenarios}
+        scenario="normal"
+        plan={plan}
+        prime={5}
+        primeChoice="small"
+        primeBank="HSBC"
+        bankPrimeDate="2026-11-18"
+        investmentSource="HSBC prime"
+      />,
+    )
+
+    assertContains(markup, ["P rate 5.00%", "HSBC prime, 2026-11-18"])
+  })
+
   it("renders a Traditional Chinese report with localized decision and data labels", () => {
     const markup = renderToStaticMarkup(
       <PdfReport
@@ -147,9 +169,9 @@ describe("PDF report", () => {
         estate={estate}
         data={snapshot}
         flat={null}
-        result={scenarios.neutral}
+        result={scenarios.normal}
         results={scenarios}
-        scenario="neutral"
+        scenario="normal"
         plan={plan}
         prime={5}
         investmentSource="Example Bank"
@@ -166,9 +188,9 @@ describe("PDF report", () => {
         estate={estate}
         data={snapshot}
         flat={flat}
-        result={scenarios.neutral}
+        result={scenarios.normal}
         results={scenarios}
-        scenario="neutral"
+        scenario="normal"
         plan={plan}
         prime={5}
         investmentSource="Example Bank"

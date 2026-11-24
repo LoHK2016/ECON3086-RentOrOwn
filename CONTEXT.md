@@ -42,6 +42,14 @@ _Avoid_: MIP (in user-facing text), insurance (alone)
 The monthly mortgage payment divided by the buyer's monthly income. Banks cap it at 50%; the tool warns above that but does not stop the Comparison.
 _Avoid_: DTI, affordability
 
+**Home Affordability** (置業負擔能力):
+An estimate of the highest home price allowed by monthly repayments and down-payment funds. Existing loan repayments count toward the 50% debt-servicing cap. The down-payment input excludes stamp duty, fees and mortgage-insurance premiums; the estimate is not a bank approval.
+_Avoid_: Guaranteed budget
+
+**Debt-to-income Ratio** (債務與收入比率):
+For the affordability estimate, existing monthly loan repayments plus the estimated mortgage payment, divided by gross monthly income.
+_Avoid_: Loan balance divided by annual income
+
 ### How "worth it" is judged
 
 **Horizon** (持有年期):
@@ -61,8 +69,12 @@ The annual return assumed on money the renter does not spend on buying (the down
 _Avoid_: Opportunity cost rate, discount rate
 
 **Market Scenario** (市況情景):
-One of three named sets of assumptions for annual property price growth and rent growth over the Horizon: Pessimistic, Neutral and Optimistic, derived from historical official indices.
+One of three illustrative sets of annual property price growth and investment return: Conservative (1%, 4%), Normal (3%, 6%) and Optimistic (5%, 8%). Annual rent increase is an independent user input. These assumptions are not forecasts.
 _Avoid_: Forecast, prediction, appreciation rate
+
+**Annual Rent Increase** (年度加租幅度):
+The user's assumed yearly percentage increase in rent, applied independently of the market scenario.
+_Avoid_: Market rent forecast
 
 **Rental Yield** (租金回報率):
 Annual rent divided by property price. Shown for reference only and never used as the verdict.

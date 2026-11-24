@@ -39,9 +39,27 @@ export type BankPlan = {
   provisional: boolean
 }
 
-export type Growth = { price_growth: number; rent_growth: number }
-export type ScenarioName = "pessimistic" | "neutral" | "optimistic"
-export const SCENARIO_NAMES: ScenarioName[] = ["pessimistic", "neutral", "optimistic"]
+export type MarketScenario = { price_growth: number; investment_return: number }
+export type ScenarioName = "conservative" | "normal" | "optimistic"
+export const SCENARIO_NAMES: ScenarioName[] = ["conservative", "normal", "optimistic"]
+export const MARKET_SCENARIOS: Record<ScenarioName, MarketScenario> = {
+  conservative: { price_growth: 1, investment_return: 4 },
+  normal: { price_growth: 3, investment_return: 6 },
+  optimistic: { price_growth: 5, investment_return: 8 },
+}
+
+export type AffordabilityResult = {
+  maximum_mortgage: number
+  maximum_property_price: number
+  monthly_mortgage_payment: number
+  debt_to_income_ratio: number
+  stress_rate: number
+  stress_monthly_mortgage_payment: number
+  stress_debt_to_income_ratio: number
+  stress_test_passes: boolean
+  ltv: number
+  mortgage_years: number
+}
 
 export type Snapshot = {
   date: string
@@ -49,7 +67,7 @@ export type Snapshot = {
   bank_primes?: Record<string, { prime: number; date: string }>
   estates: Estate[]
   bank_plans: BankPlan[]
-  scenarios: Record<ScenarioName, Growth>
+  scenarios: Record<string, { price_growth: number; rent_growth: number }>
   investment_return: { value: number; provisional: boolean; bank?: string; months?: string }
   deposits?: Record<string, { rates: Record<string, number>; url: string; date: string }>
   deposit_ranking?: Record<string, { bank: string; rate: number; url: string }[]>

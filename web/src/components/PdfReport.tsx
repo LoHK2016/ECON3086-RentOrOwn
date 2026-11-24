@@ -13,6 +13,8 @@ type Props = {
   scenario: ScenarioName
   plan: BankPlan
   prime: number
+  primeChoice?: "h" | "small" | "big"
+  primeBank?: string
   bankPrimeDate?: string
   investmentSource: string
 }
@@ -88,6 +90,8 @@ export function PdfReport({
   scenario,
   plan,
   prime,
+  primeChoice = "h",
+  primeBank = plan.bank,
   bankPrimeDate,
   investmentSource,
 }: Props) {
@@ -232,15 +236,19 @@ export function PdfReport({
         <h2 className="report-section-title">{t("reportBankRate")}</h2>
         <div className="report-panel">
           <p>{plan.bank}{plan.provisional ? ` · ${t("provisional")}` : ""}</p>
-          <p>{t("rateFormula", {
-            hibor: data.rates.hibor_1m.toFixed(2),
-            spread: plan.hibor_spread,
-            prime: prime.toFixed(2),
-            discount: plan.prime_discount,
-          })}</p>
+          <p>
+            {primeChoice === "h"
+              ? t("rateFormula", {
+                  hibor: data.rates.hibor_1m.toFixed(2),
+                  spread: plan.hibor_spread,
+                  prime: prime.toFixed(2),
+                  discount: plan.prime_discount,
+                })
+              : t("pRateFormula", { prime: prime.toFixed(2) })}
+          </p>
           <p>
             {bankPrimeDate
-              ? `${t("primeFromBank", { bank: plan.bank })} · ${bankPrimeDate}`
+              ? t("primeFromBank", { bank: primeBank, date: bankPrimeDate })
               : t("primeFromHkma")}
           </p>
         </div>
@@ -276,7 +284,7 @@ export function PdfReport({
             {t("dataRates", { date: data.rates.hibor_date })}
             {data.rates.stale ? ` ${t("dataStale")}` : ""}
           </p>
-          {bankPrimeDate && <p>{t("primeFromBank", { bank: plan.bank })} · {bankPrimeDate}</p>}
+          {bankPrimeDate && <p>{t("primeFromBank", { bank: primeBank, date: bankPrimeDate })}</p>}
           {data.etf_returns?.SPY && <p>{t("dataEtf", { date: data.etf_returns.SPY.prices_to })}</p>}
           <p>{investmentSource}</p>
           <p>{t("dataManual")}</p>
