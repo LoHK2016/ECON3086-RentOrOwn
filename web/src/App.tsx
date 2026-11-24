@@ -248,7 +248,7 @@ export default function App() {
             />
           </div>
           {tool === "affordability" ? (
-            <Affordability lang={lang} rates={planRates} />
+            <Affordability lang={lang} rates={planRates} estates={data.estates} snapshotDate={data.date} />
           ) : estate && plan ? (
             <>
             <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">

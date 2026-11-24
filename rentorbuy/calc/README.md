@@ -6,8 +6,8 @@
 **Does:** one Comparison, month by month (`comparison.py`), and its parts: stamp duty (`stamp_duty.py`),
 mortgage rate, payment, loan-to-value cap and insurance (`mortgage.py`), buying and holding costs
 (`buy_side.py`), rent and savings growth (`rent_side.py`), time deposit ranking (`deposits.py`), and the
-Market Scenarios for a Horizon from the saved RVD forecast (`market.py`), and the Home Affordability estimate
-(`affordability.py`).
+Market Scenarios for a Horizon from the saved RVD forecast (`market.py`), the Home Affordability estimate
+(`affordability.py`), and Estate-level rent and buy suggestions (`recommendations.py`).
 **Does not:** fetch anything, read files, or format numbers for display.
 
 ## How one Comparison runs
@@ -30,6 +30,25 @@ runs `compare_scenarios`, and adds `range`: the smallest and largest gap, and wh
 leads in every scenario (`"depends"` if not). With no forecast for that Horizon it uses the snapshot's
 hand-entered `scenarios` and says so in `source`.
 
+## Estate recommendations
+
+`recommend_estates(estates, inputs)` prices each Estate at its snapshot average per sq ft times the entered
+Saleable Area (or its `by_room` average, if a bedroom filter is set and the snapshot has one), then labels a
+rent and a buy option Comfortable, Stretch or Risky.
+
+- `monthly_income` is take-home pay, for the comfort budget: the lower of `comfortable_pct` of it, income
+  left after debt, and `preferred_payment` (a cap only). Stretch is 125% of that, capped at income left after debt.
+- `gross_monthly_income` is for the bank's Debt Servicing Ratio, as in `assess_affordability`. A buy option
+  over 50% DSR is Risky.
+- **The buyer puts in the down payment they have** (`down_payment`), but at least what the loan-to-value cap
+  requires; the loan is the rest. `down_payment` plus `savings` must cover the down payment, stamp duty, fees
+  and Mortgage Insurance, or the option is Risky.
+- Rent upfront cash is a deposit of `rent_deposit_months` (2) plus an agent fee of `rent_agent_fee_pct` (50%)
+  of a month's rent: assumptions, not quotes.
+- The stress figures (+1 point on the rate, −20% income) are illustrative, not a bank test.
+- Holding costs reuse `monthly_holding_costs()` with the same defaults as `compare()`. Ongoing property
+  insurance, commute, amenities and tax are not included, and no individual Flat is listed.
+
 ## Rules that must hold
 
 - Standard library only. Modules here import each other and nothing else, or the site breaks in the browser.
@@ -37,7 +56,8 @@ hand-entered `scenarios` and says so in `source`.
   comparison fair; any new cost goes into `owner_cost` or `rent`, never outside the loop.
 - Each Hong Kong rule (stamp duty table, loan-to-value caps) names its source in the docstring; the
   research is in `docs/research/hk-property-rules-2026-11.md`.
-- Every function has hand-checked tests: `tests/test_calc.py`, and `tests/test_deposits.py` for `deposits.py`.
+- Every function has hand-checked tests: `tests/test_calc.py`, `tests/test_deposits.py` for `deposits.py`,
+  and `tests/test_recommendations.py` for `recommendations.py`.
 - The forecast itself is fitted offline (`rentorbuy/market_benchmarks.py`, numpy and statsmodels). `market.py`
   only reads the numbers it saved, so it stays standard library.
 

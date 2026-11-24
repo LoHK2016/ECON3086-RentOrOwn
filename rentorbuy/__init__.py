@@ -2,4 +2,5 @@
 
 from rentorbuy.calc.affordability import affordability_for_plan
 from rentorbuy.calc.comparison import compare, compare_scenarios
+from rentorbuy.calc.recommendations import recommend_estates
 from rentorbuy.calc.market import compare_forecast
