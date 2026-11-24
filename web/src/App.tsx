@@ -14,9 +14,9 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { LANGUAGES, STRINGS, defaultLang, translate, type Lang } from "@/i18n"
-import { money, percent } from "@/lib/format"
-import { compareScenarios, loadCalculator } from "@/lib/python"
-import { SCENARIO_NAMES, type Estate, type Flat, type Result, type ScenarioName, type Snapshot } from "@/lib/types"
+import { money, percent, shortMoney } from "@/lib/format"
+import { compareForecast, loadCalculator } from "@/lib/python"
+import type { Estate, Flat, ForecastReply, Snapshot } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 type Shift = "-1" | "0" | "1"
@@ -49,7 +49,7 @@ export default function App() {
 
   const [data, setData] = useState<Snapshot | null>(null)
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
-  const [results, setResults] = useState<Record<ScenarioName, Result> | null>(null)
+  const [reply, setReply] = useState<ForecastReply | null>(null)
 
   // What the user has chosen. Empty strings mean "use the typical value".
   const [estateId, setEstateId] = useState("")
@@ -70,7 +70,6 @@ export default function App() {
   const [invest, setInvest] = useState("")
   const [investMode, setInvestMode] = useState<InvestMode>("deposit")
   const [rebate, setRebate] = useState("")
-  const [scenario, setScenario] = useState<ScenarioName>("neutral")
 
   useEffect(() => {
     document.documentElement.lang = lang === "zh-Hant" ? "zh-Hant-HK" : "en"
@@ -100,7 +99,6 @@ export default function App() {
   const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
   const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
   const etf = investMode === "hk" || investMode === "us" ? data?.etf_returns?.[ETF_TICKER[investMode]] : undefined
-
   const inputs = useMemo(() => {
     if (!data || !estate || !plan) return null
     const specific = mode === "specific" && flat ? flat : null
@@ -129,15 +127,16 @@ export default function App() {
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
     let current = true
-    compareScenarios(inputs, data.scenarios)
-      .then((next) => current && setResults(next))
+    compareForecast(inputs, data.market_benchmark ?? null, data.scenarios)
+      .then((next) => current && setReply(next))
       .catch((error) => console.error(error))
     return () => {
       current = false
     }
   }, [inputs, data])
 
-  const result = results?.[scenario]
+  const results = reply?.results
+  const result = results?.neutral
   const used = result?.inputs
   // Region -> district -> Estate, each list in the order the Estates are listed.
   const regions = REGION_ORDER.filter((r) => data?.estates.some((e) => e.region_zh === r))
@@ -386,11 +385,32 @@ export default function App() {
               title={t("assumptions")}
               footer={
                 <span className="inline-flex flex-wrap items-center gap-1.5">
-                  {t("scenarioGrowth", {
-                    price: data.scenarios[scenario].price_growth,
-                    rent: data.scenarios[scenario].rent_growth,
-                  })}
-                  <ProvisionalBadge lang={lang} />
+                  {reply &&
+                    (() => {
+                      const { pessimistic: low, neutral: mid, optimistic: high } = reply.scenarios
+                      const growth = {
+                        years: horizon,
+                        price: mid.price_growth,
+                        rent: mid.rent_growth,
+                        priceLow: low.price_growth,
+                        priceHigh: high.price_growth,
+                        rentLow: low.rent_growth,
+                        rentHigh: high.rent_growth,
+                      }
+                      const benchmark = data.market_benchmark
+                      return reply.source === "forecast" && benchmark ? (
+                        t("marketBenchmark", {
+                          ...growth,
+                          from: benchmark.price.history_from,
+                          to: benchmark.price.history_to,
+                        })
+                      ) : (
+                        <>
+                          {t("scenarioRange", growth)}
+                          <ProvisionalBadge lang={lang} />
+                        </>
+                      )
+                    })()}
                 </span>
               }
             >
@@ -457,62 +477,46 @@ export default function App() {
                   />
                 </Row>
               )}
-              <div className="space-y-2 py-3">
-                <span className="text-[17px]">{t("scenario")}</span>
-                <Segmented
-                  label={t("scenario")}
-                  value={scenario}
-                  onChange={setScenario}
-                  options={SCENARIO_NAMES.map((name) => ({ value: name, label: t(name) }))}
-                />
-              </div>
             </Section>
           </div>
 
           {/* ---------- Results ---------- */}
           <div className="space-y-7 lg:sticky lg:top-6 lg:self-start">
-            {result && results && used && (
+            {reply && result && results && used && (
               <>
-                <div className="rounded-[var(--radius)] bg-card p-5">
-                  <p className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">{t(scenario)}</p>
-                  <p
-                    className={cn(
-                      "mt-1 text-[28px] leading-tight font-bold tracking-tight",
-                      result.verdict === "buy" ? "text-chart-1" : "text-chart-2",
-                    )}
-                  >
-                    {t(result.verdict === "buy" ? "buyWins" : "rentWins")}
-                  </p>
-                  <p className="mt-1 text-[17px]">
-                    {t("by", { gap: money(Math.abs(result.gap)), years: used.horizon_years })}
-                  </p>
-                  <p className="mt-1 text-[15px] text-muted-foreground">
-                    {result.break_even_year !== null
-                      ? t("breakEven", { year: result.break_even_year })
-                      : t("neverBreakEven", { years: used.horizon_years })}
-                  </p>
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    {SCENARIO_NAMES.map((name) => {
-                      const r = results[name]
-                      return (
-                        <button
-                          key={name}
-                          onClick={() => setScenario(name)}
-                          className={cn(
-                            "rounded-xl bg-secondary/60 px-3 py-2 text-left transition-colors",
-                            name === scenario && "ring-2 ring-primary",
-                          )}
-                        >
-                          <div className="text-[12px] text-muted-foreground">{t(name)}</div>
-                          <div className={cn("text-[15px] font-semibold", r.verdict === "buy" ? "text-chart-1" : "text-chart-2")}>
-                            {t(r.verdict === "buy" ? "buying" : "renting")}
-                          </div>
-                          <div className="text-[12px] text-muted-foreground tabular-nums">+{money(Math.abs(r.gap))}</div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
+                {(() => {
+                  // Python's outcome_range: the smallest and largest gap, and who leads in every scenario.
+                  const { verdict, low_gap: low, high_gap: high } = reply.range
+                  const short = (n: number) => shortMoney(Math.abs(n), lang)
+                  const years = used.horizon_years
+                  const rangeText =
+                    verdict === "buy"
+                      ? t("outcomeIntervalBuy", { low: short(low), high: short(high), years })
+                      : verdict === "rent"
+                        ? t("outcomeIntervalRent", { low: short(high), high: short(low), years })
+                        : t("outcomeIntervalMixed", { rentLead: short(low), buyLead: short(high), years })
+                  return (
+                    <div className="rounded-[var(--radius)] bg-card p-5">
+                      <p className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">
+                        {t("marketBenchmarkLabel")}
+                      </p>
+                      <p
+                        className={cn(
+                          "mt-1 text-[28px] leading-tight font-bold tracking-tight",
+                          verdict === "buy" ? "text-chart-1" : verdict === "rent" ? "text-chart-2" : "text-foreground",
+                        )}
+                      >
+                        {t(verdict === "buy" ? "buyWins" : verdict === "rent" ? "rentWins" : "dependsOnMarket")}
+                      </p>
+                      <p className="mt-1 text-[17px]">{rangeText}</p>
+                      <p className="mt-1 text-[15px] text-muted-foreground">
+                        {result.break_even_year !== null
+                          ? t("breakEven", { year: result.break_even_year })
+                          : t("neverBreakEven", { years })}
+                      </p>
+                    </div>
+                  )
+                })()}
 
                 <Section
                   title={t("netWorth")}
@@ -522,14 +526,22 @@ export default function App() {
                     <div className="mb-2 flex gap-4 text-[13px]">
                       <span className="flex items-center gap-1.5">
                         <span className="size-2.5 rounded-full bg-chart-1" />
-                        {t("buying")}
+                        {t("buyingRange")}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <span className="size-2.5 rounded-full bg-chart-2" />
-                        {t("renting")}
+                        {t("rentingRange")}
                       </span>
                     </div>
-                    <NetWorthChart result={result} lang={lang} />
+                    <p className="mb-2 text-[12px] leading-snug text-muted-foreground">
+                      {t("rangeLegend")}
+                    </p>
+                    <NetWorthChart
+                      point={results.neutral}
+                      low={results.pessimistic}
+                      high={results.optimistic}
+                      lang={lang}
+                    />
                   </div>
                 </Section>
 
@@ -624,6 +636,16 @@ export default function App() {
                       {data.rates.stale && <span className="text-warning"> {t("dataStale")}</span>}
                     </p>
                     {data.etf_returns?.SPY && <p>{t("dataEtf", { date: data.etf_returns.SPY.prices_to })}</p>}
+                    {data.market_benchmark && (
+                      <p>
+                        {t("dataForecast", {
+                          from: data.market_benchmark.price.history_from,
+                          to: data.market_benchmark.price.history_to,
+                          low: data.market_benchmark.price.past_ten_year_growth.low,
+                          high: data.market_benchmark.price.past_ten_year_growth.high,
+                        })}
+                      </p>
+                    )}
                     <p className="text-muted-foreground">{t("dataManual")}</p>
                   </div>
                 </Section>
