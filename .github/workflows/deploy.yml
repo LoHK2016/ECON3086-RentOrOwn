@@ -27,6 +27,7 @@ jobs:
         run: |
           pip install requests beautifulsoup4 pandas
           python tests/test_calc.py
+          python tests/test_recommendations.py
           python tests/test_valuation.py
           python tests/test_daily.py
           python tests/test_scrapers.py

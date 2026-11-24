@@ -15,6 +15,7 @@ export type Estate = {
   scraped?: string // date of these figures; older than the snapshot if every source failed since
   price_source?: "midland" | "centaline" // Midland: transactions; Centaline: asking prices of listings
   listings?: number // Centaline: how many sale listings the median is taken from
+  by_room?: Record<string, { price_per_ft: number; rent_per_ft: number }>
   hsbc: { zoneId: string; districtId: string; estateId: string; name: string } | null
 }
 
@@ -59,6 +60,46 @@ export type AffordabilityResult = {
   stress_test_passes: boolean
   ltv: number
   mortgage_years: number
+}
+
+export type EstateRecommendation = {
+  id: string
+  estate_id: string
+  estate_name: string
+  estate_name_zh: string
+  region: string
+  region_zh: string
+  district: string
+  district_zh: string
+  bedrooms: string | null
+  saleable_area: number
+  monthly_debt: number
+  price: number
+  monthly_rent: number
+  price_per_ft: number
+  rent_per_ft: number
+  mortgage_rate: number
+  source: string
+  source_date?: string | null
+  price_source: "midland" | "centaline"
+  mode: "buy" | "rent"
+  label: "comfortable" | "stretch" | "risky"
+  monthly_costs: Record<string, number>
+  upfront: (Record<string, number> & { loan_to_value: number }) | null
+  cash_available: number
+  cash_shortfall: number
+  housing_pct: number
+  comfortable_pct: number
+  comfortable_budget: number
+  stretch_budget: number
+  stress: {
+    monthly_cost: number
+    monthly_income: number
+    housing_pct: number
+    label: "comfortable" | "stretch" | "risky"
+    income_reduction_pct: number
+    rate_increase_pct: number
+  }
 }
 
 export type Snapshot = {

@@ -1,7 +1,16 @@
 // Loads our Python package into the browser with Pyodide and calls it.
 // All the maths happens in Python (rentorbuy/calc); this file only passes data in and out as JSON.
 
-import type { AffordabilityResult, Flat, MarketScenario, Option, Result, ScenarioName } from "./types"
+import type {
+  AffordabilityResult,
+  Estate,
+  EstateRecommendation,
+  Flat,
+  MarketScenario,
+  Option,
+  Result,
+  ScenarioName,
+} from "./types"
 
 const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/"
 
@@ -80,6 +89,19 @@ export async function calculateAffordability(
     "request = json.loads(request_json)\n" +
       "json.dumps(rentorbuy.assess_affordability(request['monthlyIncome'], request['monthlyExistingPayments'], " +
       "request['downPaymentFunds'], request['mortgageRate']))",
+  ) as string
+  return JSON.parse(reply)
+}
+
+export async function recommendEstates(
+  estates: Estate[],
+  inputs: Record<string, unknown>,
+): Promise<EstateRecommendation[]> {
+  const pyodide = await loadCalculator()
+  pyodide.globals.set("request_json", JSON.stringify({ estates, inputs }))
+  const reply = pyodide.runPython(
+    "request = json.loads(request_json)\n" +
+      "json.dumps(rentorbuy.recommend_estates(request['estates'], request['inputs']))",
   ) as string
   return JSON.parse(reply)
 }
