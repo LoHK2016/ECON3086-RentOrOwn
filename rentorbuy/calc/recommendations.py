@@ -1,7 +1,8 @@
 """Estate-level rent and purchase affordability estimates from a data snapshot."""
 
 from rentorbuy.calc.buy_side import monthly_holding_costs, upfront_costs
-from rentorbuy.calc.mortgage import max_ltv, monthly_payment
+from rentorbuy.calc.affordability import MAX_MORTGAGE_YEARS
+from rentorbuy.calc.mortgage import DSR_LIMIT, effective_rate, max_ltv, monthly_payment
 
 STRETCH_MULTIPLIER = 1.25
 STRESS_RATE_INCREASE = 1.0
@@ -55,55 +56,95 @@ def _buy_costs(price, rent, area, inputs, annual_rate):
 
 
 def recommend_estates(estates, inputs):
-    """Rank Estate-average rent and purchase options against a take-home budget.
+    """Rank Estate-average rent and purchase options against take-home and gross pay.
 
-    `monthly_income` is monthly take-home pay; `saleable_area` is in square feet.
-    Down-payment funds and savings both count toward estimated purchase cash needs.
-    Filters only use Estate fields present in the supplied snapshot.
+    `monthly_income` is monthly take-home pay for the comfort budget.
+    `gross_monthly_income` is gross monthly pay for the bank DSR, matching
+    `assess_affordability`. Saleable Area is in square feet. Down-payment funds
+    and savings count toward purchase cash needs; rental upfront costs use the
+    stated deposit-month and agent-fee assumptions. Filters use snapshot fields.
     """
     defaults = {
+        "monthly_income": None,
+        "gross_monthly_income": None,
+        "saleable_area": None,
         "monthly_debt": 0,
         "down_payment": 0,
         "savings": 0,
         "comfortable_pct": 30,
         "preferred_payment": None,
-        "first_time": True,
-        "mortgage_years": 30,
+        "first_time": False,
+        "mortgage_years": MAX_MORTGAGE_YEARS,
         "management_fee_per_ft": 3,
         "rates_pct": 5,
         "government_rent_pct": 3,
         "repair_pct": 0.2,
         "agent_fee_pct": 1,
         "legal_fee": 10_000,
+        "rent_deposit_months": 2,
+        "rent_agent_fee_pct": 50,
         "region": "",
         "district": "",
         "bedrooms": "",
         "mortgage_rate": None,
+        "hibor": None,
+        "prime": None,
+        "hibor_spread": 1.3,
+        "prime_discount": 1.75,
+        "rate_shift": 0,
     }
     options = dict(defaults)
     options.update(inputs)
     income = options["monthly_income"]
+    gross_income = options["gross_monthly_income"]
     area = options["saleable_area"]
-    rate = options["mortgage_rate"]
+    mortgage_rate = options["mortgage_rate"]
 
     if income is None or income <= 0:
         raise ValueError("monthly_income must be greater than zero")
+    if gross_income is None or gross_income <= 0:
+        raise ValueError("gross_monthly_income must be greater than zero")
     if area is None or area <= 0:
         raise ValueError("saleable_area must be greater than zero")
-    if rate is None or rate < 0:
-        raise ValueError("mortgage_rate must be zero or greater")
-    if options["mortgage_years"] <= 0:
-        raise ValueError("mortgage_years must be greater than zero")
+    if mortgage_rate is None:
+        if options["hibor"] is None or options["prime"] is None:
+            raise ValueError("provide mortgage_rate or both hibor and prime")
+        mortgage_rate = effective_rate(
+            options["hibor"],
+            options["hibor_spread"],
+            options["prime"],
+            options["prime_discount"],
+        )
+    rate = mortgage_rate + options["rate_shift"]
+    if rate < 0:
+        raise ValueError("mortgage_rate plus rate_shift cannot be negative")
+    if not 0 < options["mortgage_years"] <= MAX_MORTGAGE_YEARS:
+        raise ValueError(f"mortgage_years must be between 1 and {MAX_MORTGAGE_YEARS}")
     if options["monthly_debt"] < 0 or options["down_payment"] < 0 or options["savings"] < 0:
         raise ValueError("debt and cash budgets cannot be negative")
+    if options["rent_deposit_months"] < 0 or options["rent_agent_fee_pct"] < 0:
+        raise ValueError("rental upfront cost assumptions cannot be negative")
     if not 0 < options["comfortable_pct"] < 100:
         raise ValueError("comfortable_pct must be between zero and 100")
     if options["preferred_payment"] is not None and options["preferred_payment"] <= 0:
         raise ValueError("preferred_payment must be greater than zero")
 
     cash_available = options["down_payment"] + options["savings"]
+    required_fields = (
+        "id", "name_en", "name_zh", "region_en", "region_zh",
+        "district_en", "district_zh", "price_per_ft", "rent_per_ft", "source",
+    )
     recommendations = []
     for estate in estates:
+        if not isinstance(estate, dict) or any(field not in estate for field in required_fields):
+            continue
+        if (
+            not isinstance(estate["price_per_ft"], (int, float))
+            or not isinstance(estate["rent_per_ft"], (int, float))
+            or estate["price_per_ft"] <= 0
+            or estate["rent_per_ft"] <= 0
+        ):
+            continue
         if options["region"] and estate.get("region_en") != options["region"]:
             continue
         if options["district"] and estate.get("district_en") != options["district"]:
@@ -112,8 +153,15 @@ def recommend_estates(estates, inputs):
         price_per_ft = estate["price_per_ft"]
         rent_per_ft = estate["rent_per_ft"]
         if options["bedrooms"]:
-            room_data = estate.get("by_room", {}).get(str(options["bedrooms"]))
-            if room_data is None:
+            rooms = estate.get("by_room")
+            room_data = rooms.get(str(options["bedrooms"])) if isinstance(rooms, dict) else None
+            if (
+                not isinstance(room_data, dict)
+                or not isinstance(room_data.get("price_per_ft"), (int, float))
+                or not isinstance(room_data.get("rent_per_ft"), (int, float))
+                or room_data["price_per_ft"] <= 0
+                or room_data["rent_per_ft"] <= 0
+            ):
                 continue
             price_per_ft = room_data["price_per_ft"]
             rent_per_ft = room_data["rent_per_ft"]
@@ -131,6 +179,7 @@ def recommend_estates(estates, inputs):
             "bedrooms": str(options["bedrooms"]) if options["bedrooms"] else None,
             "saleable_area": area,
             "monthly_debt": options["monthly_debt"],
+            "gross_monthly_income": gross_income,
             "price": price,
             "monthly_rent": rent,
             "price_per_ft": price_per_ft,
@@ -142,6 +191,7 @@ def recommend_estates(estates, inputs):
         }
 
         stress_income = income * (1 - STRESS_INCOME_REDUCTION)
+        stress_gross_income = gross_income * (1 - STRESS_INCOME_REDUCTION)
         rent_label, rent_ratio, rent_comfortable_limit, rent_stretch_limit = affordability_label(
             rent,
             income,
@@ -156,16 +206,25 @@ def recommend_estates(estates, inputs):
             options["comfortable_pct"],
             preferred_payment=options["preferred_payment"],
         )
+        rent_deposit = round(rent * options["rent_deposit_months"])
+        rent_agent_fee = round(rent * options["rent_agent_fee_pct"] / 100)
         recommendations.append({
             **common,
             "id": f'{estate["id"]}:rent:{options["bedrooms"] or "any"}',
             "mode": "rent",
             "label": rent_label,
             "monthly_costs": {"rent": rent, "total": rent},
-            "upfront": None,
+            "upfront": {
+                "security_deposit": rent_deposit,
+                "agent_fee": rent_agent_fee,
+                "total_cash": rent_deposit + rent_agent_fee,
+                "rent_deposit_months": options["rent_deposit_months"],
+                "rent_agent_fee_pct": options["rent_agent_fee_pct"],
+            },
             "cash_available": cash_available,
             "cash_shortfall": 0,
             "housing_pct": rent_ratio,
+            "debt_servicing_ratio": None,
             "comfortable_pct": options["comfortable_pct"],
             "comfortable_budget": rent_comfortable_limit,
             "stretch_budget": rent_stretch_limit,
@@ -173,6 +232,7 @@ def recommend_estates(estates, inputs):
                 "monthly_cost": rent,
                 "monthly_income": stress_income,
                 "housing_pct": stress_rent_ratio,
+                "debt_servicing_ratio": None,
                 "label": stress_rent_label,
                 "income_reduction_pct": STRESS_INCOME_REDUCTION * 100,
                 "rate_increase_pct": STRESS_RATE_INCREASE,
@@ -189,6 +249,9 @@ def recommend_estates(estates, inputs):
             cash_shortfall=shortfall > 0,
             preferred_payment=options["preferred_payment"],
         )
+        buy_dsr = (monthly["mortgage"] + options["monthly_debt"]) / gross_income
+        if buy_dsr > DSR_LIMIT:
+            buy_label = "risky"
         stress_monthly, _, _ = _buy_costs(
             price,
             rent,
@@ -204,6 +267,11 @@ def recommend_estates(estates, inputs):
             cash_shortfall=shortfall > 0,
             preferred_payment=options["preferred_payment"],
         )
+        stress_buy_dsr = (
+            stress_monthly["mortgage"] + options["monthly_debt"]
+        ) / stress_gross_income
+        if stress_buy_dsr > DSR_LIMIT:
+            stress_buy_label = "risky"
         recommendations.append({
             **common,
             "id": f'{estate["id"]}:buy:{options["bedrooms"] or "any"}',
@@ -214,6 +282,7 @@ def recommend_estates(estates, inputs):
             "cash_available": cash_available,
             "cash_shortfall": shortfall,
             "housing_pct": buy_ratio,
+            "debt_servicing_ratio": buy_dsr,
             "comfortable_pct": options["comfortable_pct"],
             "comfortable_budget": comfortable_limit,
             "stretch_budget": stretch_limit,
@@ -221,6 +290,7 @@ def recommend_estates(estates, inputs):
                 "monthly_cost": stress_monthly["total"],
                 "monthly_income": stress_income,
                 "housing_pct": stress_buy_ratio,
+                "debt_servicing_ratio": stress_buy_dsr,
                 "label": stress_buy_label,
                 "income_reduction_pct": STRESS_INCOME_REDUCTION * 100,
                 "rate_increase_pct": STRESS_RATE_INCREASE,

@@ -74,6 +74,7 @@ export type EstateRecommendation = {
   bedrooms: string | null
   saleable_area: number
   monthly_debt: number
+  gross_monthly_income: number
   price: number
   monthly_rent: number
   price_per_ft: number
@@ -85,10 +86,11 @@ export type EstateRecommendation = {
   mode: "buy" | "rent"
   label: "comfortable" | "stretch" | "risky"
   monthly_costs: Record<string, number>
-  upfront: (Record<string, number> & { loan_to_value: number }) | null
+  upfront: Record<string, number> | null
   cash_available: number
   cash_shortfall: number
   housing_pct: number
+  debt_servicing_ratio: number | null
   comfortable_pct: number
   comfortable_budget: number
   stretch_budget: number
@@ -96,6 +98,7 @@ export type EstateRecommendation = {
     monthly_cost: number
     monthly_income: number
     housing_pct: number
+    debt_servicing_ratio: number | null
     label: "comfortable" | "stretch" | "risky"
     income_reduction_pct: number
     rate_increase_pct: number

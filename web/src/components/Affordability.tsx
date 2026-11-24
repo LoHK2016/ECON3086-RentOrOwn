@@ -23,6 +23,7 @@ function isEstateRecommendation(value: unknown): value is EstateRecommendation {
   const numberFields = [
     "saleable_area",
     "monthly_debt",
+    "gross_monthly_income",
     "price",
     "monthly_rent",
     "price_per_ft",
@@ -50,6 +51,7 @@ function isEstateRecommendation(value: unknown): value is EstateRecommendation {
     textFields.every((field) => typeof value[field] === "string") &&
     typeof value.source === "string" && value.source.startsWith("https://") &&
     numberFields.every((field) => typeof value[field] === "number") &&
+    (value.debt_servicing_ratio === null || typeof value.debt_servicing_ratio === "number") &&
     (value.bedrooms === null || typeof value.bedrooms === "string") &&
     (value.source_date === undefined || value.source_date === null || typeof value.source_date === "string") &&
     (value.price_source === "midland" || value.price_source === "centaline") &&
@@ -61,6 +63,7 @@ function isEstateRecommendation(value: unknown): value is EstateRecommendation {
     typeof value.stress.monthly_cost === "number" &&
     typeof value.stress.monthly_income === "number" &&
     typeof value.stress.housing_pct === "number" &&
+    (value.stress.debt_servicing_ratio === null || typeof value.stress.debt_servicing_ratio === "number") &&
     typeof value.stress.income_reduction_pct === "number" &&
     typeof value.stress.rate_increase_pct === "number" &&
     (value.stress.label === "comfortable" || value.stress.label === "stretch" || value.stress.label === "risky")
@@ -86,12 +89,14 @@ export function Affordability({
   const [takeHomeIncome, setTakeHomeIncome] = useState("")
   const [saleableArea, setSaleableArea] = useState("")
   const [savings, setSavings] = useState("0")
+  const [rentDepositMonths, setRentDepositMonths] = useState("2")
+  const [rentAgentFeePct, setRentAgentFeePct] = useState("50")
   const [preferredPayment, setPreferredPayment] = useState("")
   const [comfortablePct, setComfortablePct] = useState("30")
   const [region, setRegion] = useState("")
   const [district, setDistrict] = useState("")
   const [bedrooms, setBedrooms] = useState("")
-  const [firstTime, setFirstTime] = useState(true)
+  const [firstTime, setFirstTime] = useState(false)
   const [result, setResult] = useState<AffordabilityResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [recommendations, setRecommendations] = useState<EstateRecommendation[] | null>(null)
@@ -134,6 +139,8 @@ export function Affordability({
   const recommendationIncome = parsed(takeHomeIncome)
   const recommendationArea = parsed(saleableArea)
   const savingsFunds = parsed(savings)
+  const rentalDepositMonths = parsed(rentDepositMonths)
+  const rentalAgentFeePct = parsed(rentAgentFeePct)
   const comfortableBoundary = parsed(comfortablePct)
   const preferredMonthlyPayment = parsed(preferredPayment)
 
@@ -167,6 +174,8 @@ export function Affordability({
     if (
       recommendationIncome === undefined ||
       recommendationIncome <= 0 ||
+      monthlyIncome === undefined ||
+      monthlyIncome <= 0 ||
       monthlyDebt === undefined ||
       downPaymentFunds === undefined ||
       savingsFunds === undefined ||
@@ -178,6 +187,7 @@ export function Affordability({
 
     return {
       monthly_income: recommendationIncome,
+      gross_monthly_income: monthlyIncome,
       monthly_debt: monthlyDebt,
       down_payment: downPaymentFunds,
       savings: savingsFunds,
@@ -186,12 +196,15 @@ export function Affordability({
       preferred_payment: preferredMonthlyPayment,
       comfortable_pct: comfortableBoundary,
       first_time: firstTime,
+      rent_deposit_months: rentalDepositMonths ?? 2,
+      rent_agent_fee_pct: rentalAgentFeePct ?? 50,
       region,
       district,
       bedrooms,
     }
   }, [
     recommendationIncome,
+    monthlyIncome,
     monthlyDebt,
     downPaymentFunds,
     savingsFunds,
@@ -200,6 +213,8 @@ export function Affordability({
     preferredMonthlyPayment,
     comfortableBoundary,
     firstTime,
+    rentalDepositMonths,
+    rentalAgentFeePct,
     region,
     district,
     bedrooms,
@@ -361,7 +376,23 @@ export function Affordability({
               <p>{t("repairs")}: {money(item.monthly_costs.repairs)}</p>
             </>
           )}
+          {item.mode === "rent" && item.upfront && (
+            <>
+              <p>{t("recommendationRentUpfront")}: <strong>{money(item.upfront.total_cash)}</strong></p>
+              <p>
+                {t("recommendationRentDeposit", { months: item.upfront.rent_deposit_months })}:{" "}
+                {money(item.upfront.security_deposit)}
+              </p>
+              <p>
+                {t("recommendationRentAgentFee", { pct: item.upfront.rent_agent_fee_pct })}:{" "}
+                {money(item.upfront.agent_fee)}
+              </p>
+            </>
+          )}
           <p>{t("recommendationHousingShare")}: {item.housing_pct.toFixed(1)}%</p>
+          {item.mode === "buy" && item.debt_servicing_ratio !== null && (
+            <p>{t("recommendationDsr")}: {percent(item.debt_servicing_ratio, 1)}</p>
+          )}
           <p>{t("recommendationComfortLimit")}: {money(item.comfortable_budget)}</p>
           <p>{t("recommendationStretchLimit")}: {money(item.stretch_budget)}</p>
           {item.mode === "buy" && <p>{t("recommendationRate")}: {item.mortgage_rate.toFixed(2)}%</p>}
@@ -382,6 +413,11 @@ export function Affordability({
               ratio: item.stress.housing_pct.toFixed(1),
             })}
           </p>
+          {item.mode === "buy" && item.stress.debt_servicing_ratio !== null && (
+            <p className="mt-1 text-muted-foreground">
+              {t("recommendationStressDsr")}: {percent(item.stress.debt_servicing_ratio, 1)}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-muted-foreground">
           <a href={item.source} target="_blank" rel="noreferrer" className="text-primary">
@@ -440,7 +476,11 @@ export function Affordability({
           <Row label={t("recommendationSavings")} htmlFor="recommendation-savings">
             <NumberField id="recommendation-savings" value={savings} onChange={setSavings} prefix="$" />
           </Row>
-          <Row label={t("recommendationPreferredPayment")} hint={t("optional")} htmlFor="recommendation-preferred">
+          <Row
+            label={t("recommendationPreferredPayment")}
+            hint={t("recommendationPreferredPaymentHint")}
+            htmlFor="recommendation-preferred"
+          >
             <NumberField id="recommendation-preferred" value={preferredPayment} onChange={setPreferredPayment} prefix="$" />
           </Row>
           <Row label={t("recommendationComfort")} htmlFor="recommendation-comfort">
@@ -452,6 +492,22 @@ export function Affordability({
               checked={firstTime}
               onCheckedChange={setFirstTime}
               aria-label={t("firstTime")}
+            />
+          </Row>
+          <Row label={t("recommendationRentDepositMonths")} htmlFor="recommendation-rent-deposit">
+            <NumberField
+              id="recommendation-rent-deposit"
+              value={rentDepositMonths}
+              onChange={setRentDepositMonths}
+              suffix={t("monthsUnit")}
+            />
+          </Row>
+          <Row label={t("recommendationRentAgentFeePct")} htmlFor="recommendation-rent-agent-fee">
+            <NumberField
+              id="recommendation-rent-agent-fee"
+              value={rentAgentFeePct}
+              onChange={setRentAgentFeePct}
+              suffix="%"
             />
           </Row>
           <Row label={t("recommendationRegion")} htmlFor="recommendation-region">
