@@ -8,7 +8,7 @@ const web = dirname(dirname(fileURLToPath(import.meta.url)))
 const repo = dirname(web)
 const out = join(web, "public", "py")
 
-const files = ["rentorbuy/__init__.py", "rentorbuy/valuation.py", "rentorbuy/browser.py"]
+const files = ["rentorbuy/__init__.py", "rentorbuy/valuation.py", "rentorbuy/browser.py", "rentorbuy/export.py"]
 for (const name of readdirSync(join(repo, "rentorbuy", "calc"))) {
   if (name.endsWith(".py")) files.push(`rentorbuy/calc/${name}`)
 }

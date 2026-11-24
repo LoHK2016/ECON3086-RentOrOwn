@@ -18,7 +18,7 @@ Before changing anything in `rentorbuy/calc/`, `rentorbuy/scrapers/`, `data/` or
 `docs/adr/0001-static-site-with-python-in-the-browser.md` explains why; the rules across folders:
 
 - **Every calculation is Python.** The site in `web/` (React, TypeScript) sends inputs to `rentorbuy.compare()` and draws the dict it returns. When the page needs a new number, add it to the Python's return value and display it; the TypeScript only formats and lays out.
-- **Browser Python is standard library only.** `rentorbuy/calc/`, `rentorbuy/valuation.py` and `rentorbuy/browser.py` are copied into the site and run in Pyodide (`web/scripts/copy-python.mjs`). `browser.py` may also import `pyodide`. HTTP calls are passed in as an argument (`send`), so tests can use a fake.
+- **Browser Python is standard library only.** `rentorbuy/calc/`, `rentorbuy/valuation.py`, `rentorbuy/browser.py` and `rentorbuy/export.py` (the CSV and Excel download) are copied into the site and run in Pyodide (`web/scripts/copy-python.mjs`). `browser.py` may also import `pyodide`. HTTP calls are passed in as an argument (`send`), so tests can use a fake.
 - **Third-party libraries live in the offline code.** requests, BeautifulSoup, pandas and yfinance belong in `rentorbuy/scrapers/` and `rentorbuy/etf_returns.py`, which is where the library marks come from.
 
 ## Tests
