@@ -8,6 +8,7 @@ dependencies = [
     "beautifulsoup4>=4.12",
     "yfinance>=1.8.0",
     "pandas>=3.1.1",
+    "statsmodels>=0.14",
 ]
 
 [dependency-groups]

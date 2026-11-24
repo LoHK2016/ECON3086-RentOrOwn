@@ -214,6 +214,10 @@
       border-left-color: #e88700;
     }
 
+    .report-verdict-depends {
+      border-left-color: #8e8e93;
+    }
+
     .report-verdict h2 {
       margin: 2px 0;
       font-size: 18pt;

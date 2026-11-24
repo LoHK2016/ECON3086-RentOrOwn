@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 import { PdfReport } from "@/components/PdfReport"
-import type { BankPlan, Estate, Flat, Result, ScenarioName, Snapshot } from "@/lib/types"
+import type { BankPlan, Estate, Flat, ForecastReply, Result, Snapshot } from "@/lib/types"
 
 const estate: Estate = {
   id: "harbour-view",
@@ -92,10 +92,20 @@ function comparison(verdict: "buy" | "rent", gap: number): Result {
   }
 }
 
-const scenarios: Record<ScenarioName, Result> = {
-  conservative: comparison("rent", -250_000),
-  normal: comparison("rent", -50_000),
-  optimistic: comparison("buy", 125_000),
+// What compare_forecast returns when renting leads in the middle but buying leads at the high end.
+const reply: ForecastReply = {
+  source: "forecast",
+  scenarios: {
+    pessimistic: { price_growth: -0.13, rent_growth: -0.67 },
+    neutral: { price_growth: 3.78, rent_growth: 1.78 },
+    optimistic: { price_growth: 7.84, rent_growth: 4.29 },
+  },
+  results: {
+    pessimistic: comparison("rent", -250_000),
+    neutral: comparison("rent", -50_000),
+    optimistic: comparison("buy", 125_000),
+  },
+  range: { verdict: "depends", low_gap: -250_000, high_gap: 125_000 },
 }
 
 const snapshot: Snapshot = {
@@ -104,24 +114,40 @@ const snapshot: Snapshot = {
   estates: [estate],
   bank_plans: [plan],
   scenarios: {
-    conservative: { price_growth: 1, rent_growth: 1 },
-    normal: { price_growth: 3, rent_growth: 2 },
-    optimistic: { price_growth: 5, rent_growth: 3 },
+    pessimistic: { price_growth: -2, rent_growth: 0 },
+    neutral: { price_growth: 2, rent_growth: 2 },
+    optimistic: { price_growth: 5, rent_growth: 3.5 },
+  },
+  market_benchmark: {
+    source: "Rating and Valuation Department",
+    source_urls: [],
+    price: {
+      model: "AR(1)",
+      history_from: "1996-09",
+      history_to: "2026-09",
+      past_ten_year_growth: { low: -0.42, median: 8.11, high: 12.9 },
+      growth_pct: { "2": { low: -0.13, point: 3.78, high: 7.84 } },
+    },
+    rent: {
+      model: "AR(1)",
+      history_from: "1996-09",
+      history_to: "2026-09",
+      past_ten_year_growth: { low: -0.19, median: 3.05, high: 7.36 },
+      growth_pct: { "2": { low: -0.67, point: 1.78, high: 4.29 } },
+    },
   },
   investment_return: { value: 2, provisional: false, bank: "Example Bank" },
 }
 
 describe("PDF report", () => {
-  it("includes the selected result, assumptions, scenario comparisons, chart, and source context", () => {
+  it("includes the outcome range, the middle result, assumptions, scenarios, chart, and sources", () => {
     const markup = renderToStaticMarkup(
       <PdfReport
         lang="en"
         estate={estate}
         data={snapshot}
         flat={null}
-        result={scenarios.normal}
-        results={scenarios}
-        scenario="normal"
+        reply={reply}
         plan={plan}
         prime={5}
         investmentSource="Example Bank, HKD new funds."
@@ -130,8 +156,13 @@ describe("PDF report", () => {
 
     assertContains(markup, [
       "Rent or Buy decision report",
-      "Renting comes out ahead",
+      "Depends on market",
+      // range.low_gap −250,000 and high_gap 125,000, shown short as $250K and $125K
+      "After 2 years, anywhere from renting ahead by $250K to buying ahead by $125K",
+      // neutral: renting ends at 1,200,000 − (−50,000) = 1,250,000
       "$1,250,000",
+      "Pessimistic · -0.13% / -0.67%",
+      "Rating and Valuation Department monthly indices, 1996-09 to 2026-09",
       "Net worth over time",
       "Example Bank",
       "Assumptions and limitations",
@@ -147,9 +178,7 @@ describe("PDF report", () => {
         estate={estate}
         data={snapshot}
         flat={null}
-        result={scenarios.normal}
-        results={scenarios}
-        scenario="normal"
+        reply={reply}
         plan={plan}
         prime={5}
         primeChoice="small"
@@ -169,16 +198,14 @@ describe("PDF report", () => {
         estate={estate}
         data={snapshot}
         flat={null}
-        result={scenarios.normal}
-        results={scenarios}
-        scenario="normal"
+        reply={reply}
         plan={plan}
         prime={5}
         investmentSource="Example Bank"
       />,
     )
 
-    assertContains(markup, ["租定買比較報告", "租樓較著數", "淨資產走勢", "數據來源同更新情況"])
+    assertContains(markup, ["租定買比較報告", "視乎市況", "淨資產走勢", "數據來源同更新情況"])
   })
 
   it("includes the HSBC valuation and date when a specific flat was selected", () => {
@@ -188,9 +215,7 @@ describe("PDF report", () => {
         estate={estate}
         data={snapshot}
         flat={flat}
-        result={scenarios.normal}
-        results={scenarios}
-        scenario="normal"
+        reply={reply}
         plan={plan}
         prime={5}
         investmentSource="Example Bank"
