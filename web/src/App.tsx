@@ -18,6 +18,7 @@ import { money, percent } from "@/lib/format"
 import { compareScenarios, loadCalculator } from "@/lib/python"
 import { type Estate, type Flat, type Result, type ScenarioName, type Snapshot } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { formatWan } from "@/lib/format"
 
 type Shift = "-1" | "0" | "1"
 type InvestMode = "deposit" | "hk" | "us" | "custom"
@@ -495,29 +496,74 @@ export default function App() {
           <div className="space-y-7 lg:sticky lg:top-6 lg:self-start">
             {result && results && used && (
               <>
-                <div className="rounded-[var(--radius)] bg-card p-5">
-                  <p className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">{t("marketBenchmarkLabel")}</p>
-                  <p
-                    className={cn(
-                      "mt-1 text-[28px] leading-tight font-bold tracking-tight",
-                      result.verdict === "buy" ? "text-chart-1" : "text-chart-2",
-                    )}
-                  >
-                    {t(result.verdict === "buy" ? "buyWins" : "rentWins")}
-                  </p>
-                  <p className="mt-1 text-[17px]">
-                    {t("outcomeInterval", {
-                      low: money(Math.abs(results.pessimistic.gap)),
-                      high: money(Math.abs(results.optimistic.gap)),
-                      years: used.horizon_years,
-                    })}
-                  </p>
-                  <p className="mt-1 text-[15px] text-muted-foreground">
-                    {result.break_even_year !== null
-                      ? t("breakEven", { year: result.break_even_year })
-                      : t("neverBreakEven", { years: used.horizon_years })}
-                  </p>
-                </div>
+                {(() => {
+                  const minGap = Math.min(results.pessimistic.gap, results.optimistic.gap);
+                  const maxGap = Math.max(results.pessimistic.gap, results.optimistic.gap);
+                  const allBuy = minGap > 0;
+                  const allRent = maxGap < 0;
+
+                  const isZh = /[\u4e00-\u9fff]/.test(t("buyWins"));
+                  const approxMoney = (n: number) => {
+                    const abs = Math.abs(n);
+                    if (isZh) {
+                      return abs >= 10_000
+                        ? `約 $${Math.round(abs / 10_000).toLocaleString()} 萬`
+                        : money(abs);
+                    }
+                    if (abs >= 1_000_000) return `~$${(abs / 1_000_000).toFixed(2)}M`;
+                    if (abs >= 1_000) return `~$${Math.round(abs / 1_000).toLocaleString()}k`;
+                    return money(abs);
+                  };
+
+                  const verdictKey = allBuy ? "buyWins" : allRent ? "rentWins" : "dependsOnMarket";
+                  const verdictColor = allBuy
+                    ? "text-chart-1"
+                    : allRent
+                      ? "text-chart-2"
+                      : "text-foreground";
+
+                  const intervalText = allBuy
+                    ? t("outcomeIntervalBuy", {
+                        low: approxMoney(minGap),
+                        high: approxMoney(maxGap),
+                        years: used.horizon_years,
+                      })
+                    : allRent
+                      ? t("outcomeIntervalRent", {
+                          low: approxMoney(maxGap),
+                          high: approxMoney(minGap),
+                          years: used.horizon_years,
+                        })
+                      : t("outcomeIntervalMixed", {
+                          rentLead: approxMoney(minGap),
+                          buyLead: approxMoney(maxGap),
+                          years: used.horizon_years,
+                        });
+
+                  return (
+                    <div className="rounded-[var(--radius)] bg-card p-5">
+                      <p className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">
+                        {t("marketBenchmarkLabel")}
+                      </p>
+                      <p
+                        className={cn(
+                          "mt-1 text-[28px] leading-tight font-bold tracking-tight",
+                          verdictColor,
+                        )}
+                      >
+                        {t(verdictKey)}
+                      </p>
+                      <p className="mt-1 text-[17px]">
+                        {intervalText}
+                      </p>
+                      <p className="mt-1 text-[15px] text-muted-foreground">
+                        {result.break_even_year !== null
+                          ? t("breakEven", { year: result.break_even_year })
+                          : t("neverBreakEven", { years: used.horizon_years })}
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 <Section
                   title={t("netWorth")}

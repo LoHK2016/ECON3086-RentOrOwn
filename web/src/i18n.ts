@@ -100,6 +100,11 @@ const en = {
   marketBenchmarkLabel: "10-year mean-reverting forecast",
   marketBenchmark: "{years}-year point: prices {price}% / rent {rent}% a year. 95% interval: prices {priceLow}% to {priceHigh}%, rent {rentLow}% to {rentHigh}%.",
   outcomeInterval: "Outcome gap range: {low}–{high} after {years} years",
+  dependsOnMarket: "Depends on market",
+  outcomeIntervalBuy: "After {years} years, buying leads by {low} to {high}",
+  outcomeIntervalRent: "After {years} years, renting leads by {low} to {high}",
+  outcomeIntervalMixed: "Depends on market: after {years} years, from renting ahead by {rentLead} to buying ahead by {buyLead}",
+  
 
   buyWins: "Buying comes out ahead",
   rentWins: "Renting comes out ahead",
@@ -270,6 +275,10 @@ const zhHant: Strings = {
   marketBenchmarkLabel: "10 年均值回歸預測",
   marketBenchmark: "{years} 年點預測：樓價每年 {price}%，租金每年 {rent}%。95% 區間：樓價 {priceLow}% 至 {priceHigh}%，租金 {rentLow}% 至 {rentHigh}%。",
   outcomeInterval: "{years} 年後淨資產差距區間：{low} 至 {high}",
+  dependsOnMarket: "視乎市況",
+  outcomeIntervalBuy: "{years} 年後，買樓領先{low}至{high}",
+  outcomeIntervalRent: "{years} 年後，租樓領先{low}至{high}",
+  outcomeIntervalMixed: "視乎市況，{years} 年後由租樓領先{rentLead}，到買樓領先{buyLead}",
 
   buyWins: "買樓較著數",
   rentWins: "租樓較著數",
@@ -284,7 +293,7 @@ const zhHant: Strings = {
   buyingRange: "買樓 · 95% 區間",
   rentingRange: "租樓 · 95% 區間",
   forecastRange95: "95% 模型預測區間",
-  rangeLegend: "實線代表點預測；藍色／綠色區域代表買樓及租樓淨資產的95%預測區間。",
+  rangeLegend: "實線代表點預測；藍色／橙色區域代表買樓及租樓淨資產的95%預測區間。",
   year: "第 {n} 年",
 
   dayOne: "上會當日",
