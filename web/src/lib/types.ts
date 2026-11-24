@@ -92,12 +92,17 @@ export type Result = {
   inputs: {
     price: number
     monthly_rent: number
+    saleable_area: number
     mortgage_rate: number
     ltv: number
     max_ltv: number
     horizon_years: number
     price_growth: number
     rent_growth: number
+    investment_return: number
+    mortgage_years: number
+    first_time: boolean
+    monthly_income: number | null
     management_fee_per_ft: number
     rates_pct: number
     government_rent_pct: number

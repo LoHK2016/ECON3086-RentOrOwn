@@ -10,7 +10,7 @@ Should you buy a Hong Kong home, or rent it and invest the difference? An ECON30
 - `rentorbuy/etf_returns.py`: past returns of the Tracker Fund (2800.HK) and SPY, worked out with pandas from monthly prices that `rentorbuy/scrapers/etf.py` downloads with yfinance. Run by hand every few months, not daily.
 - `data/`: dated snapshots; `data/latest.json` is what the site reads. `data/manual/` holds hand-entered assumptions.
 - `tests/`: hand-checked `assert` tests (`test_calc.py`, `test_valuation.py`, `test_daily.py`, `test_scrapers.py`, `test_banks.py`, `test_deposits.py`, `test_etf_returns.py`, `test_centaline.py`).
-- `web/`: the website (React, Tailwind, shadcn/ui). It only displays what Python returns.
+- `web/`: the website (React, Tailwind, shadcn/ui). It displays what Python returns and can print a localized, stand-alone comparison report to PDF.
 
 See `CONTEXT.md` for the words we use and `docs/adr/` for why it is built this way.
 
@@ -21,4 +21,7 @@ uv run python tests/test_calc.py && uv run python tests/test_valuation.py && uv 
 uv run python -m rentorbuy.scrapers.daily   # scrape today's data
 uv run python -m rentorbuy.scrapers.etf     # refresh ETF prices (Yahoo Finance) and returns, every few months
 pnpm --dir web install && pnpm --dir web dev   # the site, at http://localhost:5173
+pnpm --dir web test                            # the PDF report presentation tests
 ```
+
+After running a comparison, choose **Save PDF report** and select **Save as PDF** in the browser's print dialog. The report uses the current language and market scenario, and includes the net-worth chart, inputs, costs, data sources and limitations.
