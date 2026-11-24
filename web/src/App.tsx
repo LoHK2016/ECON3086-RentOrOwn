@@ -249,7 +249,8 @@ export default function App() {
           {tool === "affordability" ? (
             <Affordability lang={lang} mortgageRate={affordabilityRate} />
           ) : estate && plan ? (
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+            <>
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
           {/* ---------- Inputs ---------- */}
           <div className="space-y-7">
             <Section
@@ -771,6 +772,7 @@ export default function App() {
             investmentSource={investmentSource}
           />
         )}
+            </>
           ) : null}
         </>
       )}
