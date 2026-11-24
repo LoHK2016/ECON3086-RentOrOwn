@@ -25,7 +25,7 @@ jobs:
           python-version: "3.12"
       - name: Run the tests
         run: |
-          pip install requests beautifulsoup4 pandas numpy statsmodels
+          pip install requests beautifulsoup4 pandas numpy statsmodels openpyxl
           python tests/test_calc.py
           python tests/test_recommendations.py
           python tests/test_valuation.py
@@ -36,6 +36,7 @@ jobs:
           python tests/test_etf_returns.py
           python tests/test_centaline.py
           python tests/test_market_benchmarks.py
+          python tests/test_export.py
       - uses: pnpm/action-setup@v4
         with:
           version: 10

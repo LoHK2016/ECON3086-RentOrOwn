@@ -118,6 +118,33 @@ export async function recommendEstates(
   return JSON.parse(reply)
 }
 
+/** What to name the export file and say about the Comparison, beside its numbers. */
+export type ExportContext = { estate: string; flat_address: string | null; snapshot_date: string; today: string }
+
+/** Download the Comparison as a CSV or Excel file. Python (rentorbuy/export.py) writes the file. */
+export async function downloadExport(
+  reply: ForecastReply,
+  context: ExportContext,
+  lang: string,
+  kind: "csv" | "xlsx",
+): Promise<void> {
+  const pyodide = await loadCalculator()
+  pyodide.globals.set("request_json", JSON.stringify({ reply, context, lang, kind }))
+  const answer = pyodide.runPython(
+    "from rentorbuy import export\n" +
+      "request = json.loads(request_json)\n" +
+      "json.dumps(export.export_file(request['reply'], request['context'], request['lang'], request['kind']))",
+  ) as string
+  const file: { filename: string; mime: string; base64: string } = JSON.parse(answer)
+  const bytes = Uint8Array.from(atob(file.base64), (char) => char.charCodeAt(0))
+  const url = URL.createObjectURL(new Blob([bytes], { type: file.mime }))
+  const link = document.createElement("a")
+  link.href = url
+  link.download = file.filename
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 // ---- HSBC flat picker: Python calls HSBC from the browser (rentorbuy/valuation.py) ----
 
 /** The ids chosen so far, e.g. {zoneId, districtId, estateId, blockId, floor, flat}. */

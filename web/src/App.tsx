@@ -17,7 +17,7 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { LANGUAGES, STRINGS, defaultLang, translate, type Lang } from "@/i18n"
 import { money, percent, shortMoney } from "@/lib/format"
-import { compareForecast, loadCalculator } from "@/lib/python"
+import { compareForecast, downloadExport, loadCalculator } from "@/lib/python"
 import type { Estate, Flat, ForecastReply, Snapshot } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -200,6 +200,17 @@ export default function App() {
     setPrice("")
     setRent("")
     setValuation("")
+  }
+
+  function exportResults(kind: "csv" | "xlsx") {
+    if (!reply || !data || !estate) return
+    const context = {
+      estate: lang === "en" ? estate.name_en : estate.name_zh,
+      flat_address: mode === "specific" && flat ? flat.address : null,
+      snapshot_date: data.date,
+      today: new Date().toLocaleDateString("en-CA"), // YYYY-MM-DD in the visitor's time zone
+    }
+    downloadExport(reply, context, lang, kind).catch((error) => console.error(error))
   }
 
   function printReport() {
@@ -623,6 +634,19 @@ export default function App() {
                         {t("reportAction")}
                       </button>
                       <p className="mt-1 text-[12px] text-muted-foreground">{t("reportActionHint")}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {(["csv", "xlsx"] as const).map((kind) => (
+                          <button
+                            key={kind}
+                            type="button"
+                            onClick={() => exportResults(kind)}
+                            className="inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-secondary"
+                          >
+                            <FileDown className="size-4" />
+                            {t(kind === "csv" ? "exportCsv" : "exportXlsx")}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )
                 })()}
