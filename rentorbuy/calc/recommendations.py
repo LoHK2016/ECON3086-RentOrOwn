@@ -30,9 +30,20 @@ def affordability_label(monthly_housing_cost, monthly_income, monthly_debt,
     return label, ratio_pct, comfortable_limit, stretch_limit
 
 
+def loan_to_value_for(price, down_payment, first_time):
+    """The share of the price borrowed when the buyer puts in `down_payment`.
+
+    The buyer puts in the cash they have set aside for the down payment, but
+    never less than the bank's loan-to-value cap requires; the loan is the rest.
+    """
+    smallest_down_payment = price * (1 - max_ltv(price, first_time))
+    down = min(price, max(down_payment, smallest_down_payment))
+    return 1 - down / price
+
+
 def _buy_costs(price, rent, area, inputs, annual_rate):
     """Return estimated monthly owner costs and upfront cash for an Estate."""
-    loan_to_value = max_ltv(price, inputs["first_time"])
+    loan_to_value = loan_to_value_for(price, inputs["down_payment"], inputs["first_time"])
     upfront = upfront_costs(
         price,
         price,
