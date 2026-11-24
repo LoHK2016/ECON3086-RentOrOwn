@@ -8,13 +8,15 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from rentorbuy.scrapers import daily
 from rentorbuy.scrapers.daily import (
     add_last_known_estates,
+    benchmark_or_last_known,
     default_investment_return,
     deposits_or_last_known,
     primes_or_last_known,
     use_centaline,
-)  # needs requests and bs4: `uv run`
+)  # needs requests, bs4 and statsmodels: `uv run`
 
 LAST = {"date": "2026-11-11", "estates": [{"id": "E1", "price_per_ft": 100}, {"id": "E2", "price_per_ft": 200}]}
 
@@ -71,6 +73,19 @@ def test_deposits_and_default_return():
     # No bank offers 12 months: fall back to the hand-entered value.
     fallback = {"investment_return": {"value": 2.0, "provisional": True}}
     assert default_investment_return({}, fallback)["value"] == 2.0
+
+
+def test_benchmark_keeps_last_forecast_when_rvd_fails():
+    def rvd_down():
+        raise OSError("RVD did not answer")
+
+    real = daily.current_benchmarks
+    daily.current_benchmarks = rvd_down
+    try:
+        assert benchmark_or_last_known({"market_benchmark": {"price": "yesterday"}}) == {"price": "yesterday"}
+        assert benchmark_or_last_known({}) is None  # no forecast yet: the site uses the assumptions
+    finally:
+        daily.current_benchmarks = real
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { translate, type Lang } from "@/i18n"
-import { calculateAffordability, recommendEstates } from "@/lib/python"
+import { calculateAffordability, recommendEstates, type PlanRates } from "@/lib/python"
 import type { AffordabilityResult, Estate, EstateRecommendation } from "@/lib/types"
 import { money, percent } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -72,12 +72,12 @@ function isEstateRecommendation(value: unknown): value is EstateRecommendation {
 
 export function Affordability({
   lang,
-  mortgageRate,
+  rates,
   estates,
   snapshotDate,
 }: {
   lang: Lang
-  mortgageRate: number
+  rates: PlanRates
   estates: Estate[]
   snapshotDate: string
 }) {
@@ -192,7 +192,12 @@ export function Affordability({
       down_payment: downPaymentFunds,
       savings: savingsFunds,
       saleable_area: recommendationArea,
-      mortgage_rate: mortgageRate,
+      // A P rate is used as it is; with none, Python works out the H-plan rate from these.
+      mortgage_rate: rates.p_rate,
+      hibor: rates.hibor,
+      prime: rates.prime,
+      hibor_spread: rates.hibor_spread,
+      prime_discount: rates.prime_discount,
       preferred_payment: preferredMonthlyPayment,
       comfortable_pct: comfortableBoundary,
       first_time: firstTime,
@@ -209,7 +214,7 @@ export function Affordability({
     downPaymentFunds,
     savingsFunds,
     recommendationArea,
-    mortgageRate,
+    rates,
     preferredMonthlyPayment,
     comfortableBoundary,
     firstTime,
@@ -230,7 +235,7 @@ export function Affordability({
     let current = true
     setResult(null)
     setError(null)
-    calculateAffordability(monthlyIncome, monthlyDebt, downPaymentFunds, mortgageRate)
+    calculateAffordability(monthlyIncome, monthlyDebt, downPaymentFunds, rates)
       .then((next) => current && setResult(next))
       .catch((cause: unknown) => {
         console.error(cause)
@@ -239,7 +244,7 @@ export function Affordability({
     return () => {
       current = false
     }
-  }, [monthlyIncome, monthlyDebt, downPaymentFunds, mortgageRate])
+  }, [monthlyIncome, monthlyDebt, downPaymentFunds, rates])
 
   useEffect(() => {
     if (!recommendationInputs) {
@@ -461,7 +466,7 @@ export function Affordability({
         </Section>
         <Section title={t("assumptions")}>
           <Row label={t("affordabilityRate")}>
-            <span className="tabular-nums text-foreground">{mortgageRate.toFixed(2)}%</span>
+            <span className="tabular-nums text-foreground">{result ? `${result.mortgage_rate.toFixed(2)}%` : "—"}</span>
           </Row>
           <p className="py-3 text-[13px] leading-snug text-muted-foreground">{t("affordabilityAssumptions")}</p>
           <p className="py-3 text-[13px] leading-snug text-muted-foreground">{t("affordabilityLimits")}</p>
@@ -586,11 +591,14 @@ export function Affordability({
               <Row label={t("debtToIncome")}>{percent(result.debt_to_income_ratio, 1)}</Row>
             </Section>
             <Section title={t("stressTest")}>
-              <div className={cn("py-3 text-[15px]", result.stress_test_passes ? "text-success" : "text-destructive")}>
-                {t(result.stress_test_passes ? "stressPass" : "stressFail")}
-              </div>
+              <p className="py-3 text-[13px] leading-snug text-muted-foreground">
+                {t("stressHint", { rate: result.stress_rate.toFixed(2) })}
+              </p>
+              <Row label={t("stressPrice", { rate: result.stress_rate.toFixed(2) })}>
+                {money(result.stress_maximum_property_price)}
+              </Row>
               <Row label={t("stressDti", { rate: result.stress_rate.toFixed(2) })}>
-                <span className={cn(result.stress_test_passes ? "text-success" : "text-destructive")}>
+                <span className={cn(result.stress_debt_to_income_ratio > 0.5 && "text-destructive")}>
                   {percent(result.stress_debt_to_income_ratio, 1)}
                 </span>
               </Row>

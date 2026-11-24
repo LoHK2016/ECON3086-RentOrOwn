@@ -6,9 +6,10 @@ import type {
   Estate,
   EstateRecommendation,
   Flat,
-  MarketScenario,
+  ForecastReply,
+  Growth,
+  MarketBenchmark,
   Option,
-  Result,
   ScenarioName,
 } from "./types"
 
@@ -61,34 +62,45 @@ export function loadCalculator(): Promise<Pyodide> {
   return ready
 }
 
-export async function compareScenarios(
+/** Run the Comparison under the RVD forecast's Market Scenarios (or `fallback` if there is none). */
+export async function compareForecast(
   inputs: Record<string, unknown>,
-  scenarios: Record<ScenarioName, MarketScenario>,
-): Promise<Record<ScenarioName, Result>> {
+  benchmark: MarketBenchmark | null,
+  fallback: Record<ScenarioName, Growth>,
+): Promise<ForecastReply> {
   const pyodide = await loadCalculator()
-  pyodide.globals.set("request_json", JSON.stringify({ inputs, scenarios }))
+  pyodide.globals.set("request_json", JSON.stringify({ inputs, benchmark, fallback }))
   const reply = pyodide.runPython(
     "request = json.loads(request_json)\n" +
-      "json.dumps(rentorbuy.compare_scenarios(request['inputs'], request['scenarios']))",
+      "json.dumps(rentorbuy.compare_forecast(request['inputs'], request['benchmark'], request['fallback']))",
   ) as string
   return JSON.parse(reply)
+}
+
+/** The rates rentorbuy.calc.affordability.plan_rate needs; p_rate is set for a Small P or Big P plan. */
+export type PlanRates = {
+  hibor: number
+  hibor_spread: number
+  prime: number
+  prime_discount: number
+  p_rate: number | null
 }
 
 export async function calculateAffordability(
   monthlyIncome: number,
   monthlyExistingPayments: number,
   downPaymentFunds: number,
-  mortgageRate: number,
+  rates: PlanRates,
 ): Promise<AffordabilityResult> {
   const pyodide = await loadCalculator()
   pyodide.globals.set(
     "request_json",
-    JSON.stringify({ monthlyIncome, monthlyExistingPayments, downPaymentFunds, mortgageRate }),
+    JSON.stringify({ monthlyIncome, monthlyExistingPayments, downPaymentFunds, rates }),
   )
   const reply = pyodide.runPython(
     "request = json.loads(request_json)\n" +
-      "json.dumps(rentorbuy.assess_affordability(request['monthlyIncome'], request['monthlyExistingPayments'], " +
-      "request['downPaymentFunds'], request['mortgageRate']))",
+      "json.dumps(rentorbuy.affordability_for_plan(request['monthlyIncome'], request['monthlyExistingPayments'], " +
+      "request['downPaymentFunds'], request['rates']))",
   ) as string
   return JSON.parse(reply)
 }

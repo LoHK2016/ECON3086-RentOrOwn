@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { SCENARIO_NAMES, type Estate, type Flat, type Result, type ScenarioName, type Snapshot, type BankPlan } from "@/lib/types"
+import { SCENARIO_NAMES, type BankPlan, type Estate, type Flat, type ForecastReply, type Result, type Snapshot } from "@/lib/types"
 import { STRINGS, translate, type Lang } from "@/i18n"
 import { money, percent, shortMoney } from "@/lib/format"
 
@@ -8,9 +8,8 @@ type Props = {
   estate: Estate
   data: Snapshot
   flat: Flat | null
-  result: Result
-  results: Record<ScenarioName, Result>
-  scenario: ScenarioName
+  /** What rentorbuy.compare_forecast returned; the report shows its middle (neutral) result in detail. */
+  reply: ForecastReply
   plan: BankPlan
   prime: number
   primeChoice?: "h" | "small" | "big"
@@ -85,9 +84,7 @@ export function PdfReport({
   estate,
   data,
   flat,
-  result,
-  results,
-  scenario,
+  reply,
   plan,
   prime,
   primeChoice = "h",
@@ -97,7 +94,17 @@ export function PdfReport({
 }: Props) {
   const t = (key: Parameters<typeof translate>[1], replacements?: Record<string, string | number>) =>
     translate(lang, key, replacements)
+  const result = reply.results.neutral
   const used = result.inputs
+  // Python's outcome_range: the smallest and largest gap, and who leads in every scenario.
+  const { verdict, low_gap: lowGap, high_gap: highGap } = reply.range
+  const short = (n: number) => shortMoney(Math.abs(n), lang)
+  const rangeText =
+    verdict === "buy"
+      ? t("outcomeIntervalBuy", { low: short(lowGap), high: short(highGap), years: used.horizon_years })
+      : verdict === "rent"
+        ? t("outcomeIntervalRent", { low: short(highGap), high: short(lowGap), years: used.horizon_years })
+        : t("outcomeIntervalMixed", { rentLead: short(lowGap), buyLead: short(highGap), years: used.horizon_years })
   const buyEnd = result.buy_net_worth[result.buy_net_worth.length - 1]
   const rentEnd = result.rent_net_worth[result.rent_net_worth.length - 1]
   const estateName = lang === "en" ? estate.name_en : estate.name_zh
@@ -123,13 +130,14 @@ export function PdfReport({
           </p>
           <p className="report-date">{t("reportPrepared", { date: prepared })}</p>
         </div>
-        <span className="report-scenario">{t(scenario)}</span>
+        <span className="report-scenario">{t("marketBenchmarkLabel")}</span>
       </header>
 
-      <section className={`report-verdict report-verdict-${result.verdict}`}>
+      <section className={`report-verdict report-verdict-${verdict}`}>
         <div>
+          <h2>{t(verdict === "buy" ? "buyWins" : verdict === "rent" ? "rentWins" : "dependsOnMarket")}</h2>
+          <p>{rangeText}</p>
           <p className="report-label">{t("reportOutcome", { years: used.horizon_years })}</p>
-          <h2>{t(result.verdict === "buy" ? "buyWins" : "rentWins")}</h2>
           <p>{t("reportAdvantage", { choice: winner, amount: money(Math.abs(result.gap)) })}</p>
           <p className="report-break-even">
             {result.break_even_year !== null
@@ -149,11 +157,12 @@ export function PdfReport({
         <h2 className="report-section-title">{t("reportScenarios")}</h2>
         <div className="report-scenarios">
           {SCENARIO_NAMES.map((name) => {
-            const scenarioResult = results[name]
+            const scenarioResult = reply.results[name]
+            const growth = reply.scenarios[name]
             const scenarioWinner = t(scenarioResult.verdict === "buy" ? "reportFinalBuy" : "reportFinalRent")
             return (
-              <div className={`report-scenario-card${name === scenario ? " report-selected" : ""}`} key={name}>
-                <span>{t(name)}</span>
+              <div className={`report-scenario-card${name === "neutral" ? " report-selected" : ""}`} key={name}>
+                <span>{t(name)} · {`${growth.price_growth}% / ${growth.rent_growth}%`}</span>
                 <strong>{scenarioWinner}</strong>
                 <small>{t("reportAdvantage", {
                   choice: scenarioWinner,
@@ -286,6 +295,16 @@ export function PdfReport({
           </p>
           {bankPrimeDate && <p>{t("primeFromBank", { bank: primeBank, date: bankPrimeDate })}</p>}
           {data.etf_returns?.SPY && <p>{t("dataEtf", { date: data.etf_returns.SPY.prices_to })}</p>}
+          {reply.source === "forecast" && data.market_benchmark && (
+            <p>
+              {t("dataForecast", {
+                from: data.market_benchmark.price.history_from,
+                to: data.market_benchmark.price.history_to,
+                low: data.market_benchmark.price.past_ten_year_growth.low,
+                high: data.market_benchmark.price.past_ten_year_growth.high,
+              })}
+            </p>
+          )}
           <p>{investmentSource}</p>
           <p>{t("dataManual")}</p>
         </div>

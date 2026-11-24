@@ -69,12 +69,8 @@ The annual return assumed on money the renter does not spend on buying (the down
 _Avoid_: Opportunity cost rate, discount rate
 
 **Market Scenario** (市況情景):
-One of three illustrative sets of annual property price growth and investment return: Conservative (1%, 4%), Normal (3%, 6%) and Optimistic (5%, 8%). Annual rent increase is an independent user input. These assumptions are not forecasts.
+One of three named sets of assumptions for annual property price growth and rent growth over the Horizon: Pessimistic, Neutral and Optimistic. They are the low end, middle and high end of a model fitted to the last 30 years of the Rating and Valuation Department's price and rent indices (hand-entered values if that is missing).
 _Avoid_: Forecast, prediction, appreciation rate
-
-**Annual Rent Increase** (年度加租幅度):
-The user's assumed yearly percentage increase in rent, applied independently of the market scenario.
-_Avoid_: Market rent forecast
 
 **Rental Yield** (租金回報率):
 Annual rent divided by property price. Shown for reference only and never used as the verdict.

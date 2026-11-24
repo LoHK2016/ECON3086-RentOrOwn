@@ -166,14 +166,12 @@ def compare(inputs):
 def compare_scenarios(inputs, scenarios):
     """Run the Comparison once per Market Scenario.
 
-    `scenarios` maps a name to {"price_growth": ..., "investment_return": ...}.
-    If `use_scenario_return` is false, every scenario uses the return in `inputs`.
+    `scenarios` maps a name to {"price_growth": ..., "rent_growth": ...}.
     """
     results = {}
     for name, growth in scenarios.items():
         one = dict(inputs)
         one["price_growth"] = growth["price_growth"]
-        if inputs.get("use_scenario_return", True):
-            one["investment_return"] = growth["investment_return"]
+        one["rent_growth"] = growth["rent_growth"]
         results[name] = compare(one)
     return results
