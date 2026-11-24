@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { AlertTriangle, ExternalLink } from "lucide-react"
+import { AlertTriangle, ExternalLink, FileDown } from "lucide-react"
 import { DepositRanking } from "@/components/DepositRanking"
 import { FlatPicker } from "@/components/FlatPicker"
 import { NetWorthChart } from "@/components/NetWorthChart"
+import { PdfReport } from "@/components/PdfReport"
 import { NumberField, Row, Section, Segmented, digits, parsed } from "@/components/grouped"
 import {
   Select,
@@ -149,6 +150,21 @@ export default function App() {
 
   const result = results?.[scenario]
   const used = result?.inputs
+  const investmentSource = investMode === "deposit"
+    ? data?.investment_return.bank
+      ? t("investDepositHint", { bank: data.investment_return.bank })
+      : t("investFallbackHint")
+    : etf
+      ? t(etf.dividend_tax ? "etfTaxHint" : "etfHint", { years: etf.years, to: etf.prices_to }) +
+        " " +
+        t("etfWorst", {
+          worst: etf.worst.toFixed(2).replace("-", "−"),
+          from: etf.worst_from,
+          to: etf.worst_to,
+          share: etf.losing_share,
+          since: etf.history_from.slice(0, 4),
+        })
+      : t("reportCustomInvestment")
   // Region -> district -> Estate, each list in the order the Estates are listed.
   const regions = REGION_ORDER.filter((r) => data?.estates.some((e) => e.region_zh === r))
   const districts = unique((data?.estates ?? []).filter((e) => e.region_zh === estate?.region_zh), (e) => e.district_zh)
@@ -172,6 +188,16 @@ export default function App() {
     setValuation("")
   }
 
+  function printReport() {
+    const previousTitle = document.title
+    document.title = `${t("reportTitle")} - ${lang === "en" ? estate?.name_en : estate?.name_zh}`
+    const restoreTitle = () => {
+      document.title = previousTitle
+    }
+    window.addEventListener("afterprint", restoreTitle, { once: true })
+    window.print()
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
@@ -191,6 +217,7 @@ export default function App() {
       {status === "error" && <p className="py-24 text-center text-destructive">{t("loadError")}</p>}
 
       {status === "ready" && data && estate && plan && (
+        <>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
           {/* ---------- Inputs ---------- */}
           <div className="space-y-7">
@@ -551,6 +578,15 @@ export default function App() {
                       )
                     })}
                   </div>
+                  <button
+                    type="button"
+                    onClick={printReport}
+                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                  >
+                    <FileDown className="size-4" />
+                    {t("reportAction")}
+                  </button>
+                  <p className="mt-1 text-[12px] text-muted-foreground">{t("reportActionHint")}</p>
                 </div>
 
                 <Section
@@ -670,6 +706,22 @@ export default function App() {
             )}
           </div>
         </div>
+        {result && results && (
+          <PdfReport
+            lang={lang}
+            estate={estate}
+            data={data}
+            flat={mode === "specific" ? flat : null}
+            result={result}
+            results={results}
+            scenario={scenario}
+            plan={plan}
+            prime={prime}
+            bankPrimeDate={bankPrime?.date}
+            investmentSource={investmentSource}
+          />
+        )}
+        </>
       )}
 
       <footer className="mt-12 text-center text-[13px] text-muted-foreground">{t("footer")}</footer>
