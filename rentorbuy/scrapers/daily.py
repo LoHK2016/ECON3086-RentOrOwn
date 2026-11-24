@@ -4,6 +4,7 @@ Writes data/<today>/snapshot.json and copies it to data/latest.json, which
 the website reads. Run it with:  python -m rentorbuy.scrapers.daily
 """
 
+import csv
 import json
 from datetime import datetime
 from pathlib import Path
@@ -98,6 +99,15 @@ def deposits_or_last_known(scraped, last, today):
     return found
 
 
+def benchmark_or_last_known(last):
+    """Today's RVD price and rent forecast, or the last saved one if RVD cannot be read."""
+    try:
+        return current_benchmarks()
+    except (OSError, ValueError, csv.Error) as error:
+        print("RVD forecast failed, keeping the last one:", error)
+        return last.get("market_benchmark")
+
+
 def default_investment_return(found, assumptions):
     """The best 12-month new-fund rate, or the hand-entered fallback if no bank offers 12 months."""
     bank, rate = best_deposit(found, "12")
@@ -134,15 +144,14 @@ def build_snapshot():
         print(f"{len(missing)} estates missing; trying Centaline")
         estates = use_centaline(estates, centaline.scrape_all(missing), today)
     found = deposits_or_last_known(deposits.get_deposit_rates(), last, today)
-    benchmark = current_benchmarks()
     return {
         "date": today,
         "rates": get_rates_or_last_known(assumptions, last),
         "bank_primes": primes_or_last_known(banks.get_primes(), last, today),
         "estates": attach_hsbc_ids(estates),
         "bank_plans": assumptions["bank_plans"],
-        "scenarios": benchmark["scenarios"],
-        "market_benchmark": benchmark,
+        "scenarios": {k: v for k, v in assumptions["scenarios"].items() if not k.startswith("_")},
+        "market_benchmark": benchmark_or_last_known(last),
         "deposits": found,
         "deposit_ranking": rank_all(found),
         "investment_return": default_investment_return(found, assumptions),

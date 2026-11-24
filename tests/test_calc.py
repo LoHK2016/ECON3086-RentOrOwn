@@ -19,6 +19,7 @@ from rentorbuy.calc.mortgage import (
 )
 from rentorbuy.calc.buy_side import upfront_costs, home_equity, monthly_holding_costs
 from rentorbuy.calc.comparison import compare, compare_scenarios
+from rentorbuy.calc.market import compare_forecast, forecast_scenarios, outcome_range
 
 
 def close(a, b, tolerance=0.01):
@@ -124,8 +125,8 @@ def test_home_equity():
     assert home_equity(5_000_000, 1.0, 3_000_000) == 1_950_000  # 4.95M - 3M
 
 
-def no_frills(**changes):
-    """A Comparison with every cost and growth set to zero, easy to check by hand."""
+def no_frills_inputs(**changes):
+    """Inputs with every cost and growth set to zero, easy to check by hand."""
     inputs = {
         "price": 5_000_000,
         "saleable_area": 500,
@@ -143,7 +144,12 @@ def no_frills(**changes):
         "sell_cost_pct": 0,
     }
     inputs.update(changes)
-    return compare(inputs)
+    return inputs
+
+
+def no_frills(**changes):
+    """A Comparison with every cost and growth set to zero."""
+    return compare(no_frills_inputs(**changes))
 
 
 def test_compare_by_hand():
@@ -238,6 +244,53 @@ def test_missing_input():
         assert False, "should have raised"
     except ValueError:
         pass
+
+
+# A made-up forecast in the shape rentorbuy/market_benchmarks.py saves.
+FORECAST = {
+    "price": {"growth_pct": {"1": {"low": -10, "point": 0, "high": 10}}},
+    "rent": {"growth_pct": {"1": {"low": -1, "point": 0, "high": 2}}},
+}
+FALLBACK = {"neutral": {"price_growth": 2, "rent_growth": 2}}
+
+
+def test_forecast_scenarios():
+    # Pessimistic takes both low ends, Neutral both points, Optimistic both high ends.
+    scenarios, source = forecast_scenarios(FORECAST, 1, FALLBACK)
+    assert source == "forecast"
+    assert scenarios["pessimistic"] == {"price_growth": -10, "rent_growth": -1}
+    assert scenarios["neutral"] == {"price_growth": 0, "rent_growth": 0}
+    assert scenarios["optimistic"] == {"price_growth": 10, "rent_growth": 2}
+    # No forecast for a 5-year Horizon, or none at all: the hand-entered scenarios.
+    assert forecast_scenarios(FORECAST, 5, FALLBACK) == (FALLBACK, "assumptions")
+    assert forecast_scenarios(None, 1, FALLBACK) == (FALLBACK, "assumptions")
+
+
+def test_outcome_range():
+    def gaps(*values):
+        return {str(i): {"gap": gap} for i, gap in enumerate(values)}
+
+    assert outcome_range(gaps(100, 300, 200)) == {"verdict": "buy", "low_gap": 100, "high_gap": 300}
+    assert outcome_range(gaps(-100, -300)) == {"verdict": "rent", "low_gap": -300, "high_gap": -100}
+    assert outcome_range(gaps(-100, 50)) == {"verdict": "depends", "low_gap": -100, "high_gap": 50}
+    assert outcome_range(gaps(0, 50))["verdict"] == "depends"  # a tie is not a win
+
+
+def test_compare_forecast_by_hand():
+    # Over 1 year with no costs, the renter keeps the 5,172,500 day-one cash
+    # (see test_compare_by_hand) and the owner has the home plus 12 x 15,000 = 180,000
+    # invested. Rent growth does not touch year 1's rent, so only the price matters:
+    #   pessimistic, prices -10%: 4,500,000 + 180,000 - 5,172,500 = -492,500
+    #   neutral,     prices  0%:  5,000,000 + 180,000 - 5,172,500 =    7,500
+    #   optimistic,  prices +10%: 5,500,000 + 180,000 - 5,172,500 =  507,500
+    reply = compare_forecast(no_frills_inputs(horizon_years=1), FORECAST, FALLBACK)
+    assert reply["source"] == "forecast"
+    assert close(reply["results"]["pessimistic"]["gap"], -492_500)
+    assert close(reply["results"]["neutral"]["gap"], 7_500)
+    assert close(reply["results"]["optimistic"]["gap"], 507_500)
+    assert reply["range"]["verdict"] == "depends"
+    assert close(reply["range"]["low_gap"], -492_500)
+    assert close(reply["range"]["high_gap"], 507_500)
 
 
 if __name__ == "__main__":

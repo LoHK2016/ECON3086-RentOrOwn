@@ -43,6 +43,16 @@ export type Growth = { price_growth: number; rent_growth: number }
 export type ScenarioName = "pessimistic" | "neutral" | "optimistic"
 export const SCENARIO_NAMES: ScenarioName[] = ["pessimistic", "neutral", "optimistic"]
 
+/** One series' forecast from rentorbuy/market_benchmarks.py; growth_pct is keyed by Horizon ("1" to "30"). */
+export type SeriesForecast = {
+  model: string
+  history_from: string
+  history_to: string
+  past_ten_year_growth: { low: number; median: number; high: number }
+  growth_pct: Record<string, { low: number; point: number; high: number }>
+}
+export type MarketBenchmark = { source: string; source_urls: string[]; price: SeriesForecast; rent: SeriesForecast }
+
 export type Snapshot = {
   date: string
   rates: { hibor_1m: number; hibor_date: string; prime: number; stale?: boolean }
@@ -50,45 +60,7 @@ export type Snapshot = {
   estates: Estate[]
   bank_plans: BankPlan[]
   scenarios: Record<ScenarioName, Growth>
-  market_benchmark?: {
-    source: string
-    history_from: string
-    history_to: string
-    method: string
-    observations: number
-    arima?: {
-      horizons?: Record<string, {
-        price: {
-          model: string
-          trend?: string
-          horizon_years: number
-          point_growth_pct: number
-          intervals_pct: Record<"80%" | "95%", [number, number]>
-        }
-        rent: {
-          model: string
-          trend?: string
-          horizon_years: number
-          point_growth_pct: number
-          intervals_pct: Record<"80%" | "95%", [number, number]>
-        }
-      }>
-      price: {
-        model: string
-        trend?: string
-        horizon_years: number
-        point_growth_pct: number
-        intervals_pct: Record<"80%" | "95%", [number, number]>
-      }
-      rent: {
-        model: string
-        trend?: string
-        horizon_years: number
-        point_growth_pct: number
-        intervals_pct: Record<"80%" | "95%", [number, number]>
-      }
-    }
-  }
+  market_benchmark?: MarketBenchmark | null
   investment_return: { value: number; provisional: boolean; bank?: string; months?: string }
   deposits?: Record<string, { rates: Record<string, number>; url: string; date: string }>
   deposit_ranking?: Record<string, { bank: string; rate: number; url: string }[]>
@@ -154,4 +126,12 @@ export type Result = {
   rental_yield: number
   debt_servicing_ratio: number | null
   dsr_too_high: boolean
+}
+
+/** What rentorbuy.compare_forecast returns (rentorbuy/calc/market.py). */
+export type ForecastReply = {
+  source: "forecast" | "assumptions"
+  scenarios: Record<ScenarioName, Growth>
+  results: Record<ScenarioName, Result>
+  range: { verdict: "buy" | "rent" | "depends"; low_gap: number; high_gap: number }
 }

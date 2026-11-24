@@ -35,7 +35,7 @@
     }
   ],
   "scenarios": {
-    "_provisional": "Replaced by rentorbuy.market_benchmarks rolling 30-year RVD calculation.",
+    "_provisional": "Used only when the snapshot has no RVD forecast for the Horizon (market_benchmark, made by rentorbuy/market_benchmarks.py).",
     "pessimistic": {
       "price_growth": -2.0,
       "rent_growth": 0.0

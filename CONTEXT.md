@@ -61,7 +61,7 @@ The annual return assumed on money the renter does not spend on buying (the down
 _Avoid_: Opportunity cost rate, discount rate
 
 **Market Scenario** (市況情景):
-One of three named sets of assumptions for annual property price growth and rent growth over the Horizon: Pessimistic, Neutral and Optimistic, derived from historical official indices.
+One of three named sets of assumptions for annual property price growth and rent growth over the Horizon: Pessimistic, Neutral and Optimistic. They are the low end, middle and high end of a model fitted to the last 30 years of the Rating and Valuation Department's price and rent indices (hand-entered values if that is missing).
 _Avoid_: Forecast, prediction, appreciation rate
 
 **Rental Yield** (租金回報率):

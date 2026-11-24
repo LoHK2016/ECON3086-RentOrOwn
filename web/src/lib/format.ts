@@ -22,12 +22,3 @@ export function shortMoney(value: number, lang: Lang): string {
 export function percent(value: number, digits = 1): string {
   return (value * 100).toFixed(digits) + "%"
 }
-
-export function formatWan(amount: number): string {
-  const abs = Math.abs(amount);
-  if (abs >= 10_000) {
-    const wan = Math.round(abs / 10_000);
-    return `$${wan.toLocaleString()} 萬`;
-  }
-  return `$${abs.toLocaleString()}`;
-}

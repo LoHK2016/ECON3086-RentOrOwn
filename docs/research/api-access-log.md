@@ -73,3 +73,12 @@ What we changed:
 - The daily GitHub Actions job makes 2 HKMA requests a day, from GitHub's IP addresses, not ours.
 
 Still to find out: whether GitHub's runners are allowed, and when this connection is unblocked. Add the answer to the table above.
+
+## RVD price and rent index CSVs: 2026-11-25, no problems
+
+`rentorbuy/market_benchmarks.py` reads two monthly CSVs from the Rating and Valuation Department's open data: `1.4M.csv` (private domestic price indices) and `1.3M.csv` (rent indices). They are static files, updated once a month. The daily job fetches both every morning.
+
+| Time (UTC) | Who | Requests | Result |
+| --- | --- | --- | --- |
+| 24 Nov, around PR #5 | the PR author, while building `market_benchmarks.py` | not logged | worked |
+| 24 Nov 19:22 | `curl` from home, each CSV once with `USER_AGENT` (saved as `tests/fixtures/rvd_1.4M.csv` and `rvd_1.3M.csv`) | 2 | both 200, about 25 KB each, data to 09-2026 |

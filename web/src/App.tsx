@@ -11,14 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
+import { Switch } from "@/components/ui/switch"
 import { LANGUAGES, STRINGS, defaultLang, translate, type Lang } from "@/i18n"
-import { money, percent } from "@/lib/format"
-import { compareScenarios, loadCalculator } from "@/lib/python"
-import { type Estate, type Flat, type Result, type ScenarioName, type Snapshot } from "@/lib/types"
+import { money, percent, shortMoney } from "@/lib/format"
+import { compareForecast, loadCalculator } from "@/lib/python"
+import type { Estate, Flat, ForecastReply, Snapshot } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { formatWan } from "@/lib/format"
 
 type Shift = "-1" | "0" | "1"
 type InvestMode = "deposit" | "hk" | "us" | "custom"
@@ -50,7 +49,7 @@ export default function App() {
 
   const [data, setData] = useState<Snapshot | null>(null)
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
-  const [results, setResults] = useState<Record<ScenarioName, Result> | null>(null)
+  const [reply, setReply] = useState<ForecastReply | null>(null)
 
   // What the user has chosen. Empty strings mean "use the typical value".
   const [estateId, setEstateId] = useState("")
@@ -71,7 +70,6 @@ export default function App() {
   const [invest, setInvest] = useState("")
   const [investMode, setInvestMode] = useState<InvestMode>("deposit")
   const [rebate, setRebate] = useState("")
-  const scenario: ScenarioName = "neutral"
 
   useEffect(() => {
     document.documentElement.lang = lang === "zh-Hant" ? "zh-Hant-HK" : "en"
@@ -101,26 +99,6 @@ export default function App() {
   const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
   const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
   const etf = investMode === "hk" || investMode === "us" ? data?.etf_returns?.[ETF_TICKER[investMode]] : undefined
-  const forecastScenarios = useMemo(() => {
-    if (!data) return null
-    const horizonForecast = data.market_benchmark?.arima?.horizons?.[String(horizon)]
-    if (!horizonForecast) return data.scenarios
-    return {
-      pessimistic: {
-        price_growth: horizonForecast.price.intervals_pct["95%"][0],
-        rent_growth: horizonForecast.rent.intervals_pct["95%"][0],
-      },
-      neutral: {
-        price_growth: horizonForecast.price.point_growth_pct,
-        rent_growth: horizonForecast.rent.point_growth_pct,
-      },
-      optimistic: {
-        price_growth: horizonForecast.price.intervals_pct["95%"][1],
-        rent_growth: horizonForecast.rent.intervals_pct["95%"][1],
-      },
-    }
-  }, [data, horizon])
-
   const inputs = useMemo(() => {
     if (!data || !estate || !plan) return null
     const specific = mode === "specific" && flat ? flat : null
@@ -149,16 +127,16 @@ export default function App() {
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
     let current = true
-    if (!forecastScenarios) return
-    compareScenarios(inputs, forecastScenarios)
-      .then((next) => current && setResults(next))
+    compareForecast(inputs, data.market_benchmark ?? null, data.scenarios)
+      .then((next) => current && setReply(next))
       .catch((error) => console.error(error))
     return () => {
       current = false
     }
-  }, [inputs, data, forecastScenarios])
+  }, [inputs, data])
 
-  const result = results?.[scenario]
+  const results = reply?.results
+  const result = results?.neutral
   const used = result?.inputs
   // Region -> district -> Estate, each list in the order the Estates are listed.
   const regions = REGION_ORDER.filter((r) => data?.estates.some((e) => e.region_zh === r))
@@ -407,33 +385,43 @@ export default function App() {
               title={t("assumptions")}
               footer={
                 <span className="inline-flex flex-wrap items-center gap-1.5">
-                  {(() => {
-                    const selected = data.market_benchmark?.arima?.horizons?.[String(horizon)]
-                      ?? data.market_benchmark?.arima?.horizons?.["10"]
-                    return t("marketBenchmark", {
-                      years: horizon,
-                      price: selected?.price?.point_growth_pct ?? data.scenarios.neutral.price_growth,
-                      rent: selected?.rent?.point_growth_pct ?? data.scenarios.neutral.rent_growth,
-                      priceLow: selected?.price?.intervals_pct["95%"][0] ?? data.scenarios.pessimistic.price_growth,
-                      priceHigh: selected?.price?.intervals_pct["95%"][1] ?? data.scenarios.optimistic.price_growth,
-                      rentLow: selected?.rent?.intervals_pct["95%"][0] ?? data.scenarios.pessimistic.rent_growth,
-                      rentHigh: selected?.rent?.intervals_pct["95%"][1] ?? data.scenarios.optimistic.rent_growth,
-                    })
-                  })()}
+                  {reply &&
+                    (() => {
+                      const { pessimistic: low, neutral: mid, optimistic: high } = reply.scenarios
+                      const growth = {
+                        years: horizon,
+                        price: mid.price_growth,
+                        rent: mid.rent_growth,
+                        priceLow: low.price_growth,
+                        priceHigh: high.price_growth,
+                        rentLow: low.rent_growth,
+                        rentHigh: high.rent_growth,
+                      }
+                      const benchmark = data.market_benchmark
+                      return reply.source === "forecast" && benchmark ? (
+                        t("marketBenchmark", {
+                          ...growth,
+                          from: benchmark.price.history_from,
+                          to: benchmark.price.history_to,
+                        })
+                      ) : (
+                        <>
+                          {t("scenarioRange", growth)}
+                          <ProvisionalBadge lang={lang} />
+                        </>
+                      )
+                    })()}
                 </span>
               }
             >
-              <div className="space-y-2 py-3">
-                <span className="text-[17px]">{t("horizon")}</span>
-                <Segmented
-                  label={t("horizon")}
-                  value={String(horizon)}
-                  onChange={(value) => setHorizon(Number(value))}
-                  options={[10, 20, 30].map((years) => ({
-                    value: String(years),
-                    label: `${years} ${t("years")}`,
-                  }))}
-                />
+              <div className="space-y-3 py-3">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[17px]">{t("horizon")}</span>
+                  <span className="text-[17px] text-muted-foreground tabular-nums">
+                    {horizon} {t("years")}
+                  </span>
+                </div>
+                <Slider min={1} max={30} step={1} value={[horizon]} onValueChange={([v]) => setHorizon(v)} aria-label={t("horizon")} />
               </div>
               <div className="space-y-2 py-3">
                 <span className="text-[17px]">{t("invest")}</span>
@@ -494,52 +482,19 @@ export default function App() {
 
           {/* ---------- Results ---------- */}
           <div className="space-y-7 lg:sticky lg:top-6 lg:self-start">
-            {result && results && used && (
+            {reply && result && results && used && (
               <>
                 {(() => {
-                  const minGap = Math.min(results.pessimistic.gap, results.optimistic.gap);
-                  const maxGap = Math.max(results.pessimistic.gap, results.optimistic.gap);
-                  const allBuy = minGap > 0;
-                  const allRent = maxGap < 0;
-
-                  const isZh = /[\u4e00-\u9fff]/.test(t("buyWins"));
-                  const approxMoney = (n: number) => {
-                    const abs = Math.abs(n);
-                    if (isZh) {
-                      return abs >= 10_000
-                        ? `約 $${Math.round(abs / 10_000).toLocaleString()} 萬`
-                        : money(abs);
-                    }
-                    if (abs >= 1_000_000) return `~$${(abs / 1_000_000).toFixed(2)}M`;
-                    if (abs >= 1_000) return `~$${Math.round(abs / 1_000).toLocaleString()}k`;
-                    return money(abs);
-                  };
-
-                  const verdictKey = allBuy ? "buyWins" : allRent ? "rentWins" : "dependsOnMarket";
-                  const verdictColor = allBuy
-                    ? "text-chart-1"
-                    : allRent
-                      ? "text-chart-2"
-                      : "text-foreground";
-
-                  const intervalText = allBuy
-                    ? t("outcomeIntervalBuy", {
-                        low: approxMoney(minGap),
-                        high: approxMoney(maxGap),
-                        years: used.horizon_years,
-                      })
-                    : allRent
-                      ? t("outcomeIntervalRent", {
-                          low: approxMoney(maxGap),
-                          high: approxMoney(minGap),
-                          years: used.horizon_years,
-                        })
-                      : t("outcomeIntervalMixed", {
-                          rentLead: approxMoney(minGap),
-                          buyLead: approxMoney(maxGap),
-                          years: used.horizon_years,
-                        });
-
+                  // Python's outcome_range: the smallest and largest gap, and who leads in every scenario.
+                  const { verdict, low_gap: low, high_gap: high } = reply.range
+                  const short = (n: number) => shortMoney(Math.abs(n), lang)
+                  const years = used.horizon_years
+                  const rangeText =
+                    verdict === "buy"
+                      ? t("outcomeIntervalBuy", { low: short(low), high: short(high), years })
+                      : verdict === "rent"
+                        ? t("outcomeIntervalRent", { low: short(high), high: short(low), years })
+                        : t("outcomeIntervalMixed", { rentLead: short(low), buyLead: short(high), years })
                   return (
                     <div className="rounded-[var(--radius)] bg-card p-5">
                       <p className="text-[13px] font-semibold tracking-wide text-muted-foreground uppercase">
@@ -548,21 +503,19 @@ export default function App() {
                       <p
                         className={cn(
                           "mt-1 text-[28px] leading-tight font-bold tracking-tight",
-                          verdictColor,
+                          verdict === "buy" ? "text-chart-1" : verdict === "rent" ? "text-chart-2" : "text-foreground",
                         )}
                       >
-                        {t(verdictKey)}
+                        {t(verdict === "buy" ? "buyWins" : verdict === "rent" ? "rentWins" : "dependsOnMarket")}
                       </p>
-                      <p className="mt-1 text-[17px]">
-                        {intervalText}
-                      </p>
+                      <p className="mt-1 text-[17px]">{rangeText}</p>
                       <p className="mt-1 text-[15px] text-muted-foreground">
                         {result.break_even_year !== null
                           ? t("breakEven", { year: result.break_even_year })
-                          : t("neverBreakEven", { years: used.horizon_years })}
+                          : t("neverBreakEven", { years })}
                       </p>
                     </div>
-                  );
+                  )
                 })()}
 
                 <Section
@@ -683,6 +636,16 @@ export default function App() {
                       {data.rates.stale && <span className="text-warning"> {t("dataStale")}</span>}
                     </p>
                     {data.etf_returns?.SPY && <p>{t("dataEtf", { date: data.etf_returns.SPY.prices_to })}</p>}
+                    {data.market_benchmark && (
+                      <p>
+                        {t("dataForecast", {
+                          from: data.market_benchmark.price.history_from,
+                          to: data.market_benchmark.price.history_to,
+                          low: data.market_benchmark.price.past_ten_year_growth.low,
+                          high: data.market_benchmark.price.past_ten_year_growth.high,
+                        })}
+                      </p>
+                    )}
                     <p className="text-muted-foreground">{t("dataManual")}</p>
                   </div>
                 </Section>

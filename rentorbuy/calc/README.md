@@ -5,7 +5,8 @@
 
 **Does:** one Comparison, month by month (`comparison.py`), and its parts: stamp duty (`stamp_duty.py`),
 mortgage rate, payment, loan-to-value cap and insurance (`mortgage.py`), buying and holding costs
-(`buy_side.py`), rent and savings growth (`rent_side.py`), time deposit ranking (`deposits.py`).
+(`buy_side.py`), rent and savings growth (`rent_side.py`), time deposit ranking (`deposits.py`), and the
+Market Scenarios for a Horizon from the saved RVD forecast (`market.py`).
 **Does not:** fetch anything, read files, or format numbers for display.
 
 ## How one Comparison runs
@@ -22,7 +23,11 @@ flowchart TD
 ```
 
 `compare_scenarios` runs `compare` once per Market Scenario (pessimistic, neutral, optimistic), changing only
-price and rent growth. That is what the page calls.
+price and rent growth. The page calls `compare_forecast` in `market.py`: it picks the scenarios for the
+chosen Horizon from the snapshot's `market_benchmark` (low end, middle and high end of the forecast),
+runs `compare_scenarios`, and adds `range`: the smallest and largest gap, and whether buying or renting
+leads in every scenario (`"depends"` if not). With no forecast for that Horizon it uses the snapshot's
+hand-entered `scenarios` and says so in `source`.
 
 ## Rules that must hold
 
@@ -32,6 +37,8 @@ price and rent growth. That is what the page calls.
 - Each Hong Kong rule (stamp duty table, loan-to-value caps) names its source in the docstring; the
   research is in `docs/research/hk-property-rules-2026-11.md`.
 - Every function has hand-checked tests: `tests/test_calc.py`, and `tests/test_deposits.py` for `deposits.py`.
+- The forecast itself is fitted offline (`rentorbuy/market_benchmarks.py`, numpy and statsmodels). `market.py`
+  only reads the numbers it saved, so it stays standard library.
 
 ## Gotchas
 
@@ -39,6 +46,8 @@ price and rent growth. That is what the page calls.
 - In `fill_defaults`, `None` means "use the default", so the page sends `None` to ask for one.
   `rate_shift` is added after the mortgage rate is worked out, so it shifts a typed rate too.
 - `yearly_costs` holds the first month of each year only, not a yearly total.
+- The Pessimistic scenario takes the low end of price growth *and* of rent growth. Both push towards renting,
+  so the range is wide, but it is not itself a 95% interval for the gap.
 - `deposits.py` runs in the daily scraper (the ranking is saved in the snapshot), not on the page. It lives
   here because it is pure maths.
 - Every name a result uses (Net Worth Outcome, Break-even Year…) is defined in `CONTEXT.md`.

@@ -1,7 +1,7 @@
 // Loads our Python package into the browser with Pyodide and calls it.
 // All the maths happens in Python (rentorbuy/calc); this file only passes data in and out as JSON.
 
-import type { Flat, Growth, Option, Result, ScenarioName } from "./types"
+import type { Flat, ForecastReply, Growth, MarketBenchmark, Option, ScenarioName } from "./types"
 
 const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/"
 
@@ -52,15 +52,17 @@ export function loadCalculator(): Promise<Pyodide> {
   return ready
 }
 
-export async function compareScenarios(
+/** Run the Comparison under the RVD forecast's Market Scenarios (or `fallback` if there is none). */
+export async function compareForecast(
   inputs: Record<string, unknown>,
-  scenarios: Record<ScenarioName, Growth>,
-): Promise<Record<ScenarioName, Result>> {
+  benchmark: MarketBenchmark | null,
+  fallback: Record<ScenarioName, Growth>,
+): Promise<ForecastReply> {
   const pyodide = await loadCalculator()
-  pyodide.globals.set("request_json", JSON.stringify({ inputs, scenarios }))
+  pyodide.globals.set("request_json", JSON.stringify({ inputs, benchmark, fallback }))
   const reply = pyodide.runPython(
     "request = json.loads(request_json)\n" +
-      "json.dumps(rentorbuy.compare_scenarios(request['inputs'], request['scenarios']))",
+      "json.dumps(rentorbuy.compare_forecast(request['inputs'], request['benchmark'], request['fallback']))",
   ) as string
   return JSON.parse(reply)
 }
