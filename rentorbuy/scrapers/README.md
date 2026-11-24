@@ -24,6 +24,8 @@ flowchart TD
     OLD2 -->|"no snapshot yet"| FB["assumptions.json: fallback_rates"]
     BANKS["banks.py: each bank's own prime"] -->|"bank failed"| OLD3["that bank's last value and date"]
     DEP["deposits.py: HKD new-fund time deposit rates"] -->|"bank failed"| OLD4["that bank's last rates and date"]
+    RVD["market_benchmarks.py: RVD price and rent indices,<br/>AR(1) forecast for 1 to 30 years"] -->|"failed"| OLD5["last snapshot's forecast"]
+    OLD5 -->|"no snapshot has one"| FB2["the site uses assumptions.json scenarios"]
 ```
 
 Whichever box a figure ends in, `build_snapshot` in `daily.py` puts it in the snapshot. It also copies in the hand-entered bank plans and scenarios (`data/manual/assumptions.json`),
@@ -43,6 +45,8 @@ the ETF returns and each Estate's HSBC ids, and ranks the deposit rates with `re
 - Midland refuses GitHub's servers (403), so on Actions most Estates come from Centaline. Those are asking
   prices, a bit above real sale prices; the snapshot marks them `"price_source": "centaline"`.
 - HKMA blocked one of our connections after about 20 requests in two hours.
+- `daily.py` imports `rentorbuy/market_benchmarks.py`, which needs numpy and statsmodels. Install them
+  wherever `daily.py` or its tests run (`deploy.yml` does).
 - Standard Chartered's prime is not online; the site uses HKMA's prime for it.
 - Dates are Hong Kong time; GitHub's clock is UTC.
 - Running `daily.py` locally rewrites `data/`. Leave those changes out of your commit.

@@ -15,6 +15,7 @@ export type Estate = {
   scraped?: string // date of these figures; older than the snapshot if every source failed since
   price_source?: "midland" | "centaline" // Midland: transactions; Centaline: asking prices of listings
   listings?: number // Centaline: how many sale listings the median is taken from
+  by_room?: Record<string, { price_per_ft: number; rent_per_ft: number }>
   hsbc: { zoneId: string; districtId: string; estateId: string; name: string } | null
 }
 
@@ -43,6 +44,73 @@ export type Growth = { price_growth: number; rent_growth: number }
 export type ScenarioName = "pessimistic" | "neutral" | "optimistic"
 export const SCENARIO_NAMES: ScenarioName[] = ["pessimistic", "neutral", "optimistic"]
 
+export type AffordabilityResult = {
+  mortgage_rate: number
+  maximum_mortgage: number
+  maximum_property_price: number
+  monthly_mortgage_payment: number
+  debt_to_income_ratio: number
+  ltv: number
+  mortgage_years: number
+  stress_rate: number
+  stress_monthly_mortgage_payment: number
+  stress_debt_to_income_ratio: number
+  stress_maximum_property_price: number
+}
+
+export type EstateRecommendation = {
+  id: string
+  estate_id: string
+  estate_name: string
+  estate_name_zh: string
+  region: string
+  region_zh: string
+  district: string
+  district_zh: string
+  bedrooms: string | null
+  saleable_area: number
+  monthly_debt: number
+  gross_monthly_income: number
+  price: number
+  monthly_rent: number
+  price_per_ft: number
+  rent_per_ft: number
+  mortgage_rate: number
+  source: string
+  source_date?: string | null
+  price_source: "midland" | "centaline"
+  mode: "buy" | "rent"
+  label: "comfortable" | "stretch" | "risky"
+  monthly_costs: Record<string, number>
+  upfront: Record<string, number> | null
+  cash_available: number
+  cash_shortfall: number
+  housing_pct: number
+  debt_servicing_ratio: number | null
+  comfortable_pct: number
+  comfortable_budget: number
+  stretch_budget: number
+  stress: {
+    monthly_cost: number
+    monthly_income: number
+    housing_pct: number
+    debt_servicing_ratio: number | null
+    label: "comfortable" | "stretch" | "risky"
+    income_reduction_pct: number
+    rate_increase_pct: number
+  }
+}
+
+/** One series' forecast from rentorbuy/market_benchmarks.py; growth_pct is keyed by Horizon ("1" to "30"). */
+export type SeriesForecast = {
+  model: string
+  history_from: string
+  history_to: string
+  past_ten_year_growth: { low: number; median: number; high: number }
+  growth_pct: Record<string, { low: number; point: number; high: number }>
+}
+export type MarketBenchmark = { source: string; source_urls: string[]; price: SeriesForecast; rent: SeriesForecast }
+
 export type Snapshot = {
   date: string
   rates: { hibor_1m: number; hibor_date: string; prime: number; stale?: boolean }
@@ -50,6 +118,7 @@ export type Snapshot = {
   estates: Estate[]
   bank_plans: BankPlan[]
   scenarios: Record<ScenarioName, Growth>
+  market_benchmark?: MarketBenchmark | null
   investment_return: { value: number; provisional: boolean; bank?: string; months?: string }
   deposits?: Record<string, { rates: Record<string, number>; url: string; date: string }>
   deposit_ranking?: Record<string, { bank: string; rate: number; url: string }[]>
@@ -74,12 +143,17 @@ export type Result = {
   inputs: {
     price: number
     monthly_rent: number
+    saleable_area: number
     mortgage_rate: number
     ltv: number
     max_ltv: number
     horizon_years: number
     price_growth: number
     rent_growth: number
+    investment_return: number
+    mortgage_years: number
+    first_time: boolean
+    monthly_income: number | null
     management_fee_per_ft: number
     rates_pct: number
     government_rent_pct: number
@@ -115,4 +189,12 @@ export type Result = {
   rental_yield: number
   debt_servicing_ratio: number | null
   dsr_too_high: boolean
+}
+
+/** What rentorbuy.compare_forecast returns (rentorbuy/calc/market.py). */
+export type ForecastReply = {
+  source: "forecast" | "assumptions"
+  scenarios: Record<ScenarioName, Growth>
+  results: Record<ScenarioName, Result>
+  range: { verdict: "buy" | "rent" | "depends"; low_gap: number; high_gap: number }
 }

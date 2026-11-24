@@ -35,7 +35,7 @@
     }
   ],
   "scenarios": {
-    "_provisional": "To be derived from RVD price and rent indices (his_data_3/4.xls) by the backtest.",
+    "_provisional": "Used only when the snapshot has no RVD forecast for the Horizon (market_benchmark, made by rentorbuy/market_benchmarks.py).",
     "pessimistic": {
       "price_growth": -2.0,
       "rent_growth": 0.0

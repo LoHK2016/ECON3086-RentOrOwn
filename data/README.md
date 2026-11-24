@@ -20,12 +20,16 @@ flowchart LR
     MAN["manual/assumptions.json"] -->|"bank_plans, scenarios,<br/>fallback rates and return"| L
     HS["hsbc_estates.json"] -->|"each Estate's hsbc ids"| L
     ETF["etf_returns.json"] -->|"etf_returns"| L
+    RVD["RVD price and rent indices<br/>(market_benchmarks.py)"] -->|"market_benchmark"| L
     L --> SITE["the site"]
     L -->|"copied"| DAY["date/snapshot.json"]
 ```
 
 Top-level keys: `date`, `rates` (HIBOR, prime, `stale`), `bank_primes`, `estates`, `bank_plans`,
-`scenarios`, `deposits`, `deposit_ranking`, `investment_return`, `etf_returns`.
+`scenarios`, `market_benchmark`, `deposits`, `deposit_ranking`, `investment_return`, `etf_returns`.
+`market_benchmark` holds the price and rent forecasts for each Horizon from 1 to 30 years
+(`price.growth_pct["10"]` = `{low, point, high}` in % a year); `scenarios` is the hand-entered fallback
+the site uses when it is missing.
 `web/src/lib/types.ts` is the shape the site expects.
 
 ## Rules that must hold
@@ -40,4 +44,6 @@ Top-level keys: `date`, `rates` (HIBOR, prime, `stale`), `bank_primes`, `estates
 - A local run of `daily.py` rewrites `latest.json` and today's folder. Leave those changes out of your commit.
 - `daily.py` reads the old `latest.json` before writing the new one, so a hand edit there leaks into
   every later snapshot.
+- `market_benchmark` is refitted every morning, but RVD publishes once a month, so it only changes
+  when a new month comes out. If RVD fails, yesterday's forecast is kept.
 - The dated folders are the history for checking the tool against past data. Keep them.

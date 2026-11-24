@@ -10,6 +10,12 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from rentorbuy.calc.stamp_duty import stamp_duty
+from rentorbuy.calc.affordability import (
+    affordability_for_plan,
+    assess_affordability,
+    loan_for_monthly_payment,
+    plan_rate,
+)
 from rentorbuy.calc.mortgage import (
     balance_after,
     effective_rate,
@@ -19,6 +25,7 @@ from rentorbuy.calc.mortgage import (
 )
 from rentorbuy.calc.buy_side import upfront_costs, home_equity, monthly_holding_costs
 from rentorbuy.calc.comparison import compare, compare_scenarios
+from rentorbuy.calc.market import compare_forecast, forecast_scenarios, outcome_range
 
 
 def close(a, b, tolerance=0.01):
@@ -124,8 +131,8 @@ def test_home_equity():
     assert home_equity(5_000_000, 1.0, 3_000_000) == 1_950_000  # 4.95M - 3M
 
 
-def no_frills(**changes):
-    """A Comparison with every cost and growth set to zero, easy to check by hand."""
+def no_frills_inputs(**changes):
+    """Inputs with every cost and growth set to zero, easy to check by hand."""
     inputs = {
         "price": 5_000_000,
         "saleable_area": 500,
@@ -143,7 +150,12 @@ def no_frills(**changes):
         "sell_cost_pct": 0,
     }
     inputs.update(changes)
-    return compare(inputs)
+    return inputs
+
+
+def no_frills(**changes):
+    """A Comparison with every cost and growth set to zero."""
+    return compare(no_frills_inputs(**changes))
 
 
 def test_compare_by_hand():
@@ -203,6 +215,76 @@ def test_scenarios_order():
     assert results["optimistic"]["gap"] > results["pessimistic"]["gap"]
 
 
+def test_loan_for_monthly_payment():
+    # At 0% the loan is just the payments added up: 25,000 x 360 = 9,000,000.
+    assert close(loan_for_monthly_payment(25_000, 0, 30), 9_000_000)
+    # At 2%: r = 0.02 / 12 = 0.0016667 a month. 1.0016667 ** -360 = e ** (-360 x 0.0016653)
+    # = e ** -0.59950 = 0.54909, so 25,000 x (1 - 0.54909) / 0.0016667 = 6,763,700.
+    assert abs(loan_for_monthly_payment(25_000, 2, 30) - 6_763_700) < 1_000
+
+
+def test_affordability_income_limited():
+    # Income 50,000, 0%: the payment may be 50% x 50,000 = 25,000, so the bank lends
+    # at most 25,000 x 360 = 9,000,000. With 3,000,000 cash the price is 12,000,000
+    # (its 80% cap is 9.6M, more than income allows). DTI = 25,000 / 50,000 = 50%.
+    result = assess_affordability(50_000, 0, 3_000_000, 0)
+    assert close(result["maximum_property_price"], 12_000_000, 1)
+    assert close(result["maximum_mortgage"], 9_000_000, 1)
+    assert close(result["monthly_mortgage_payment"], 25_000)
+    assert close(result["debt_to_income_ratio"], 0.50)
+    assert close(result["ltv"], 0.75)  # 9M / 12M
+    # Stress at 0% + 2 = 2%: the same 9M loan costs 9,000,000 / (6,763,700 / 25,000)
+    # = 33,266 a month, a DTI of 66.5%. The loan 25,000 now repays is 6,763,700
+    # (test_loan_for_monthly_payment), so the price falls to 6,763,700 + 3,000,000.
+    assert result["stress_rate"] == 2
+    assert abs(result["stress_monthly_mortgage_payment"] - 33_266) < 5
+    assert abs(result["stress_debt_to_income_ratio"] - 0.665) < 0.001
+    assert abs(result["stress_maximum_property_price"] - 9_763_700) < 1_000
+
+
+def test_affordability_cash_limited():
+    # Income 200,000 could repay 100,000 x 360 = 36M, but 1,000,000 cash is the
+    # 20% deposit of a 5,000,000 flat (80% LTV up to 10M). Loan 4,000,000,
+    # payment 4,000,000 / 360 = 11,111.11, DTI 11,111.11 / 200,000 = 5.56%.
+    # At 2% the income still covers far more, so the stressed price stays 5,000,000.
+    result = assess_affordability(200_000, 0, 1_000_000, 0)
+    assert close(result["maximum_property_price"], 5_000_000, 1)
+    assert close(result["maximum_mortgage"], 4_000_000, 1)
+    assert close(result["monthly_mortgage_payment"], 11_111.11)
+    assert close(result["debt_to_income_ratio"], 0.0556, 0.0001)
+    assert close(result["stress_maximum_property_price"], 5_000_000, 1)
+
+
+def test_affordability_existing_payments_and_ltv_tiers():
+    # 5,000 a month already owed leaves 25,000 - 5,000 = 20,000: a 7,200,000 loan at 0%,
+    # so the price is 7.2M + 3M cash = 10,200,000. DTI (5,000 + 20,000) / 50,000 = 50%.
+    result = assess_affordability(50_000, 5_000, 3_000_000, 0)
+    assert close(result["maximum_property_price"], 10_200_000, 1)
+    assert close(result["debt_to_income_ratio"], 0.50)
+    # Above 17.15M the cap is 70%, so 10,000,000 cash is 30% of 33,333,333.
+    result = assess_affordability(200_000, 0, 10_000_000, 0)
+    assert close(result["maximum_property_price"], 33_333_333, 1)
+    assert close(result["ltv"], 0.70)
+
+
+def test_affordability_rejects_invalid_inputs():
+    try:
+        assess_affordability(0, 0, 1_000_000, 3.25)
+        assert False, "should have raised"
+    except ValueError:
+        pass
+
+
+def test_plan_rate():
+    rates = {"hibor": 2.6, "hibor_spread": 1.3, "prime": 5.0, "prime_discount": 1.75}
+    # H-plan: min(2.6 + 1.3, 5 - 1.75) = min(3.9, 3.25) = 3.25%.
+    assert close(plan_rate(rates), 3.25)
+    # A Small P / Big P plan uses its own prime as it is.
+    assert plan_rate(dict(rates, p_rate=5.25)) == 5.25
+    # affordability_for_plan uses that rate: 3.25% here.
+    assert affordability_for_plan(50_000, 0, 3_000_000, rates)["mortgage_rate"] == 3.25
+
+
 def test_inputs_from_estate_and_plan():
     # 450 sq ft at the Estate's 14,000/ft and 45/ft rent: price 6.3M, rent 20,250.
     # H-plan: min(2.6 + 1.3, 5 - 1.75) = 3.25%, plus a 1-point rise = 4.25%.
@@ -224,6 +306,23 @@ def test_inputs_from_estate_and_plan():
                     "monthly_rent": 20_000, "mortgage_rate": 3})["inputs"]["price"] == 6_000_000
 
 
+def test_explicit_prime_rate_overrides_h_plan_calculation():
+    # A P-plan sends its rate (5%); it wins over the H-plan's min(1 + 1, 4 - 1) = 2%,
+    # and the +0.5 rate shift still applies: 5 + 0.5 = 5.5%.
+    result = compare({
+        "saleable_area": 450,
+        "price": 6_000_000,
+        "monthly_rent": 20_000,
+        "mortgage_rate": 5.0,
+        "hibor": 1.0,
+        "prime": 4.0,
+        "hibor_spread": 1.0,
+        "prime_discount": 1.0,
+        "rate_shift": 0.5,
+    })
+    assert close(result["inputs"]["mortgage_rate"], 5.5)
+
+
 def test_price_defaults_to_valuation():
     # A specific Flat valued by the bank at 18.93M: that is the price unless the user types one.
     result = compare({"saleable_area": 1146, "price_per_ft": 16_000, "rent_per_ft": 46,
@@ -238,6 +337,53 @@ def test_missing_input():
         assert False, "should have raised"
     except ValueError:
         pass
+
+
+# A made-up forecast in the shape rentorbuy/market_benchmarks.py saves.
+FORECAST = {
+    "price": {"growth_pct": {"1": {"low": -10, "point": 0, "high": 10}}},
+    "rent": {"growth_pct": {"1": {"low": -1, "point": 0, "high": 2}}},
+}
+FALLBACK = {"neutral": {"price_growth": 2, "rent_growth": 2}}
+
+
+def test_forecast_scenarios():
+    # Pessimistic takes both low ends, Neutral both points, Optimistic both high ends.
+    scenarios, source = forecast_scenarios(FORECAST, 1, FALLBACK)
+    assert source == "forecast"
+    assert scenarios["pessimistic"] == {"price_growth": -10, "rent_growth": -1}
+    assert scenarios["neutral"] == {"price_growth": 0, "rent_growth": 0}
+    assert scenarios["optimistic"] == {"price_growth": 10, "rent_growth": 2}
+    # No forecast for a 5-year Horizon, or none at all: the hand-entered scenarios.
+    assert forecast_scenarios(FORECAST, 5, FALLBACK) == (FALLBACK, "assumptions")
+    assert forecast_scenarios(None, 1, FALLBACK) == (FALLBACK, "assumptions")
+
+
+def test_outcome_range():
+    def gaps(*values):
+        return {str(i): {"gap": gap} for i, gap in enumerate(values)}
+
+    assert outcome_range(gaps(100, 300, 200)) == {"verdict": "buy", "low_gap": 100, "high_gap": 300}
+    assert outcome_range(gaps(-100, -300)) == {"verdict": "rent", "low_gap": -300, "high_gap": -100}
+    assert outcome_range(gaps(-100, 50)) == {"verdict": "depends", "low_gap": -100, "high_gap": 50}
+    assert outcome_range(gaps(0, 50))["verdict"] == "depends"  # a tie is not a win
+
+
+def test_compare_forecast_by_hand():
+    # Over 1 year with no costs, the renter keeps the 5,172,500 day-one cash
+    # (see test_compare_by_hand) and the owner has the home plus 12 x 15,000 = 180,000
+    # invested. Rent growth does not touch year 1's rent, so only the price matters:
+    #   pessimistic, prices -10%: 4,500,000 + 180,000 - 5,172,500 = -492,500
+    #   neutral,     prices  0%:  5,000,000 + 180,000 - 5,172,500 =    7,500
+    #   optimistic,  prices +10%: 5,500,000 + 180,000 - 5,172,500 =  507,500
+    reply = compare_forecast(no_frills_inputs(horizon_years=1), FORECAST, FALLBACK)
+    assert reply["source"] == "forecast"
+    assert close(reply["results"]["pessimistic"]["gap"], -492_500)
+    assert close(reply["results"]["neutral"]["gap"], 7_500)
+    assert close(reply["results"]["optimistic"]["gap"], 507_500)
+    assert reply["range"]["verdict"] == "depends"
+    assert close(reply["range"]["low_gap"], -492_500)
+    assert close(reply["range"]["high_gap"], 507_500)
 
 
 if __name__ == "__main__":
