@@ -6,7 +6,8 @@
 **Does:** one Comparison, month by month (`comparison.py`), and its parts: stamp duty (`stamp_duty.py`),
 mortgage rate, payment, loan-to-value cap and insurance (`mortgage.py`), buying and holding costs
 (`buy_side.py`), rent and savings growth (`rent_side.py`), time deposit ranking (`deposits.py`), and the
-Market Scenarios for a Horizon from the saved RVD forecast (`market.py`).
+Market Scenarios for a Horizon from the saved RVD forecast (`market.py`), and the Home Affordability estimate
+(`affordability.py`).
 **Does not:** fetch anything, read files, or format numbers for display.
 
 ## How one Comparison runs
@@ -48,6 +49,9 @@ hand-entered `scenarios` and says so in `source`.
 - `yearly_costs` holds the first month of each year only, not a yearly total.
 - The Pessimistic scenario takes the low end of price growth *and* of rent growth. Both push towards renting,
   so the range is wide, but it is not itself a 95% interval for the gap.
+- `affordability.py` sizes the loan to exactly the 50% DSR when income is the limit, so a "+2 points still
+  under 50%?" pass/fail would always fail. It reports the stressed payment and the lower price that would fit
+  instead. The page calls `affordability_for_plan`, which takes the rate from the chosen plan (`plan_rate`).
 - `deposits.py` runs in the daily scraper (the ranking is saved in the snapshot), not on the page. It lives
   here because it is pure maths.
 - Every name a result uses (Net Worth Outcome, Break-even Year…) is defined in `CONTEXT.md`.

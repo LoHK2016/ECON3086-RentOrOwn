@@ -1,7 +1,7 @@
 // Loads our Python package into the browser with Pyodide and calls it.
 // All the maths happens in Python (rentorbuy/calc); this file only passes data in and out as JSON.
 
-import type { Flat, ForecastReply, Growth, MarketBenchmark, Option, ScenarioName } from "./types"
+import type { AffordabilityResult, Flat, ForecastReply, Growth, MarketBenchmark, Option, ScenarioName } from "./types"
 
 const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/"
 
@@ -63,6 +63,34 @@ export async function compareForecast(
   const reply = pyodide.runPython(
     "request = json.loads(request_json)\n" +
       "json.dumps(rentorbuy.compare_forecast(request['inputs'], request['benchmark'], request['fallback']))",
+  ) as string
+  return JSON.parse(reply)
+}
+
+/** The rates rentorbuy.calc.affordability.plan_rate needs; p_rate is set for a Small P or Big P plan. */
+export type PlanRates = {
+  hibor: number
+  hibor_spread: number
+  prime: number
+  prime_discount: number
+  p_rate: number | null
+}
+
+export async function calculateAffordability(
+  monthlyIncome: number,
+  monthlyExistingPayments: number,
+  downPaymentFunds: number,
+  rates: PlanRates,
+): Promise<AffordabilityResult> {
+  const pyodide = await loadCalculator()
+  pyodide.globals.set(
+    "request_json",
+    JSON.stringify({ monthlyIncome, monthlyExistingPayments, downPaymentFunds, rates }),
+  )
+  const reply = pyodide.runPython(
+    "request = json.loads(request_json)\n" +
+      "json.dumps(rentorbuy.affordability_for_plan(request['monthlyIncome'], request['monthlyExistingPayments'], " +
+      "request['downPaymentFunds'], request['rates']))",
   ) as string
   return JSON.parse(reply)
 }

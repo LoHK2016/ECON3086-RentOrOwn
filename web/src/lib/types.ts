@@ -43,6 +43,20 @@ export type Growth = { price_growth: number; rent_growth: number }
 export type ScenarioName = "pessimistic" | "neutral" | "optimistic"
 export const SCENARIO_NAMES: ScenarioName[] = ["pessimistic", "neutral", "optimistic"]
 
+export type AffordabilityResult = {
+  mortgage_rate: number
+  maximum_mortgage: number
+  maximum_property_price: number
+  monthly_mortgage_payment: number
+  debt_to_income_ratio: number
+  ltv: number
+  mortgage_years: number
+  stress_rate: number
+  stress_monthly_mortgage_payment: number
+  stress_debt_to_income_ratio: number
+  stress_maximum_property_price: number
+}
+
 /** One series' forecast from rentorbuy/market_benchmarks.py; growth_pct is keyed by Horizon ("1" to "30"). */
 export type SeriesForecast = {
   model: string
@@ -85,12 +99,17 @@ export type Result = {
   inputs: {
     price: number
     monthly_rent: number
+    saleable_area: number
     mortgage_rate: number
     ltv: number
     max_ltv: number
     horizon_years: number
     price_growth: number
     rent_growth: number
+    investment_return: number
+    mortgage_years: number
+    first_time: boolean
+    monthly_income: number | null
     management_fee_per_ft: number
     rates_pct: number
     government_rent_pct: number

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
-import { AlertTriangle, ExternalLink } from "lucide-react"
+import { AlertTriangle, ExternalLink, FileDown } from "lucide-react"
 import { DepositRanking } from "@/components/DepositRanking"
 import { FlatPicker } from "@/components/FlatPicker"
 import { NetWorthChart } from "@/components/NetWorthChart"
+import { Affordability } from "@/components/Affordability"
+import { PdfReport } from "@/components/PdfReport"
 import { NumberField, Row, Section, Segmented, digits, parsed } from "@/components/grouped"
 import {
   Select,
@@ -21,9 +23,17 @@ import { cn } from "@/lib/utils"
 
 type Shift = "-1" | "0" | "1"
 type InvestMode = "deposit" | "hk" | "us" | "custom"
+type PrimeChoice = "h" | "small" | "big"
+type Tool = "comparison" | "affordability"
 
 // The ETF behind each stock choice (returns worked out in rentorbuy/etf_returns.py).
 const ETF_TICKER = { hk: "2800.HK", us: "SPY" } as const
+const P_RATE_BANKS = { small: "HSBC", big: "BOCHK" } as const
+const PRIME_SOURCE_URLS: Record<string, string> = {
+  HSBC: "https://www.hsbc.com.hk/investments/market-information/hk/lending-rate/",
+  BOCHK: "https://www.bochk.com/whk/rates/hkDollarPrimeRate/hkDollarPrimeRate-enquiry.action?lang=en",
+  "Hang Seng": "https://rbwm-api.hsbc.com.hk/pws-hk-hase-rates-papi-prod-proxy/v1/hkd-prime-rates",
+}
 
 const REGION_ORDER = ["香港島", "九龍", "新界"]
 const REGION_SHORT_EN: Record<string, string> = { 香港島: "HK Island", 九龍: "Kowloon", 新界: "New Territories" }
@@ -44,6 +54,7 @@ function ProvisionalBadge({ lang }: { lang: Lang }) {
 
 export default function App() {
   const [lang, setLang] = useState<Lang>(defaultLang)
+  const [tool, setTool] = useState<Tool>("comparison")
   const t = (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) =>
     translate(lang, key, values)
 
@@ -63,6 +74,7 @@ export default function App() {
   const [permanent, setPermanent] = useState(true)
   const [income, setIncome] = useState("")
   const [bank, setBank] = useState(0)
+  const [primeChoice, setPrimeChoice] = useState<PrimeChoice>("h")
   const [ltv, setLtv] = useState<number | null>(null)
   const [term, setTerm] = useState(30)
   const [shift, setShift] = useState<Shift>("0")
@@ -95,10 +107,23 @@ export default function App() {
 
   const estate: Estate | undefined = data?.estates.find((e) => e.id === estateId)
   const plan = data?.bank_plans[bank]
-  // The bank's own prime if we could read it; otherwise HKMA's (Standard Chartered).
-  const bankPrime = plan ? data?.bank_primes?.[plan.bank] : undefined
+  const primeBank = primeChoice === "h" ? plan?.bank : P_RATE_BANKS[primeChoice]
+  // HKMA publishes one unlabelled best-lending rate; the two choices use bank-specific rates.
+  const bankPrime = primeBank ? data?.bank_primes?.[primeBank] : undefined
   const prime = bankPrime?.prime ?? data?.rates.prime ?? 0
   const etf = investMode === "hk" || investMode === "us" ? data?.etf_returns?.[ETF_TICKER[investMode]] : undefined
+  // The affordability page's rate is worked out in Python (affordability.plan_rate) from these.
+  const planRates = useMemo(
+    () => ({
+      hibor: data?.rates.hibor_1m ?? 0,
+      hibor_spread: plan?.hibor_spread ?? 0,
+      prime,
+      prime_discount: plan?.prime_discount ?? 0,
+      p_rate: primeChoice === "h" ? null : prime,
+    }),
+    [data, plan, prime, primeChoice],
+  )
+
   const inputs = useMemo(() => {
     if (!data || !estate || !plan) return null
     const specific = mode === "specific" && flat ? flat : null
@@ -111,6 +136,7 @@ export default function App() {
       valuation: parsed(valuation) ?? specific?.valuation,
       first_time: firstTime,
       monthly_income: parsed(income),
+      mortgage_rate: primeChoice === "h" ? undefined : prime,
       hibor: data.rates.hibor_1m,
       prime,
       hibor_spread: plan.hibor_spread,
@@ -122,7 +148,7 @@ export default function App() {
       investment_return: (investMode === "custom" ? parsed(invest) : etf?.value) ?? data.investment_return.value,
       cash_rebate_pct: parsed(rebate) ?? plan.cash_rebate_pct,
     }
-  }, [data, estate, plan, prime, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
+  }, [data, estate, plan, prime, primeChoice, mode, flat, area, price, rent, valuation, firstTime, income, shift, ltv, term, horizon, invest, investMode, etf, rebate])
 
   useEffect(() => {
     if (!inputs || !data || !inputs.saleable_area) return
@@ -138,6 +164,21 @@ export default function App() {
   const results = reply?.results
   const result = results?.neutral
   const used = result?.inputs
+  const investmentSource = investMode === "deposit"
+    ? data?.investment_return.bank
+      ? t("investDepositHint", { bank: data.investment_return.bank })
+      : t("investFallbackHint")
+    : etf
+      ? t(etf.dividend_tax ? "etfTaxHint" : "etfHint", { years: etf.years, to: etf.prices_to }) +
+        " " +
+        t("etfWorst", {
+          worst: etf.worst.toFixed(2).replace("-", "−"),
+          from: etf.worst_from,
+          to: etf.worst_to,
+          share: etf.losing_share,
+          since: etf.history_from.slice(0, 4),
+        })
+      : t("reportCustomInvestment")
   // Region -> district -> Estate, each list in the order the Estates are listed.
   const regions = REGION_ORDER.filter((r) => data?.estates.some((e) => e.region_zh === r))
   const districts = unique((data?.estates ?? []).filter((e) => e.region_zh === estate?.region_zh), (e) => e.district_zh)
@@ -161,12 +202,26 @@ export default function App() {
     setValuation("")
   }
 
+  function printReport() {
+    const previousTitle = document.title
+    document.title = `${t("reportTitle")} - ${lang === "en" ? estate?.name_en : estate?.name_zh}`
+    const restoreTitle = () => {
+      document.title = previousTitle
+    }
+    window.addEventListener("afterprint", restoreTitle, { once: true })
+    window.print()
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
         <div>
-          <h1 className="text-[34px] leading-tight font-bold tracking-tight">{t("title")}</h1>
-          <p className="mt-1 max-w-xl text-[17px] text-muted-foreground">{t("subtitle")}</p>
+          <h1 className="text-[34px] leading-tight font-bold tracking-tight">
+            {tool === "comparison" ? t("title") : t("affordabilityTitle")}
+          </h1>
+          <p className="mt-1 max-w-xl text-[17px] text-muted-foreground">
+            {tool === "comparison" ? t("subtitle") : t("affordabilitySubtitle")}
+          </p>
         </div>
         <Segmented
           label="Language"
@@ -179,8 +234,24 @@ export default function App() {
       {status === "loading" && <p className="py-24 text-center text-muted-foreground">{t("loading")}</p>}
       {status === "error" && <p className="py-24 text-center text-destructive">{t("loadError")}</p>}
 
-      {status === "ready" && data && estate && plan && (
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      {status === "ready" && data && (
+        <>
+          <div className="mb-6 max-w-sm">
+            <Segmented
+              label={t("toolComparison")}
+              value={tool}
+              onChange={setTool}
+              options={[
+                { value: "comparison", label: t("toolComparison") },
+                { value: "affordability", label: t("toolAffordability") },
+              ]}
+            />
+          </div>
+          {tool === "affordability" ? (
+            <Affordability lang={lang} rates={planRates} />
+          ) : estate && plan ? (
+            <>
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
           {/* ---------- Inputs ---------- */}
           <div className="space-y-7">
             <Section
@@ -303,13 +374,25 @@ export default function App() {
               footer={
                 used && (
                   <span className="inline-flex flex-wrap items-center gap-1.5">
-                    {t("rateFormula", {
-                      hibor: data.rates.hibor_1m.toFixed(2),
-                      spread: plan.hibor_spread,
-                      prime: prime.toFixed(2),
-                      discount: plan.prime_discount,
-                    })}{" "}
-                    {bankPrime ? t("primeFromBank", { bank: plan.bank }) : t("primeFromHkma")}
+                    {primeChoice === "h"
+                      ? t("rateFormula", {
+                          hibor: data.rates.hibor_1m.toFixed(2),
+                          spread: plan.hibor_spread,
+                          prime: prime.toFixed(2),
+                          discount: plan.prime_discount,
+                        })
+                      : t("pRateFormula", { prime: prime.toFixed(2) })}{" "}
+                    {bankPrime && primeBank ? (
+                      <a
+                        href={PRIME_SOURCE_URLS[primeBank]}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline decoration-dotted underline-offset-2"
+                      >
+                        {t("primeFromBank", { bank: primeBank, date: bankPrime.date })}
+                        <ExternalLink className="ml-1 inline size-3" />
+                      </a>
+                    ) : t("primeFromHkma")}
                     {plan.provisional && <ProvisionalBadge lang={lang} />}
                   </span>
                 )
@@ -352,6 +435,23 @@ export default function App() {
                   <p className="text-[13px] text-muted-foreground">{t("ltvMax", { max: percent(used.max_ltv, 0) })}</p>
                 </div>
               )}
+              <div className="space-y-2 py-3">
+                <div>
+                  <p className="text-[17px]">{t("pRateChoice")}</p>
+                  <p className="text-[13px] leading-snug text-muted-foreground">{t("pRateChoiceHint")}</p>
+                </div>
+                <Segmented
+                  label={t("pRateChoice")}
+                  value={primeChoice}
+                  onChange={setPrimeChoice}
+                  options={[
+                    { value: "h", label: t("pRateH") },
+                    { value: "small", label: t("pRateSmall") },
+                    { value: "big", label: t("pRateBig") },
+                  ]}
+                  className="w-full"
+                />
+              </div>
               <Row label={t("term")}>
                 <Segmented
                   label={t("term")}
@@ -514,6 +614,15 @@ export default function App() {
                           ? t("breakEven", { year: result.break_even_year })
                           : t("neverBreakEven", { years })}
                       </p>
+                      <button
+                        type="button"
+                        onClick={printReport}
+                        className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                      >
+                        <FileDown className="size-4" />
+                        {t("reportAction")}
+                      </button>
+                      <p className="mt-1 text-[12px] text-muted-foreground">{t("reportActionHint")}</p>
                     </div>
                   )
                 })()}
@@ -652,7 +761,25 @@ export default function App() {
               </>
             )}
           </div>
-        </div>
+          </div>
+        {result && results && (
+          <PdfReport
+            lang={lang}
+            estate={estate}
+            data={data}
+            flat={mode === "specific" ? flat : null}
+            reply={reply}
+            plan={plan}
+            prime={prime}
+            primeChoice={primeChoice}
+            primeBank={primeBank ?? plan.bank}
+            bankPrimeDate={bankPrime?.date}
+            investmentSource={investmentSource}
+          />
+        )}
+            </>
+          ) : null}
+        </>
       )}
 
       <footer className="mt-12 text-center text-[13px] text-muted-foreground">{t("footer")}</footer>

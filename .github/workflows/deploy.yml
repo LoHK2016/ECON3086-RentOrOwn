@@ -49,6 +49,7 @@ jobs:
           BASE_PATH: /${{ github.event.repository.name }}/
         run: |
           pnpm install --frozen-lockfile
+          pnpm test
           pnpm build
       - uses: actions/upload-pages-artifact@v3
         with:
