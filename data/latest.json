@@ -1,9 +1,9 @@
 {
-  "date": "2026-11-24",
+  "date": "2026-11-25",
   "rates": {
     "_note": "Read from the HKMA API on 2026-11-11; used only if the API fails before any snapshot exists.",
-    "hibor_1m": 2.77089,
-    "hibor_date": "2026-11-23",
+    "hibor_1m": 2.81566,
+    "hibor_date": "2026-11-24",
     "prime": 5,
     "prime_since": "2025-10-31",
     "stale": false
@@ -11,15 +11,15 @@
   "bank_primes": {
     "HSBC": {
       "prime": 5.0,
-      "date": "2026-11-24"
+      "date": "2026-11-25"
     },
     "BOCHK": {
       "prime": 5.0,
-      "date": "2026-11-24"
+      "date": "2026-11-25"
     },
     "Hang Seng": {
       "prime": 5.0,
-      "date": "2026-11-24"
+      "date": "2026-11-25"
     }
   },
   "estates": [
@@ -32,7 +32,7 @@
       "region_en": "Hong Kong Island",
       "district_zh": "東區",
       "district_en": "Eastern",
-      "price_per_ft": 18448.5,
+      "price_per_ft": 18641.0,
       "rent_per_ft": 48.5,
       "transactions": null,
       "for_sale": 298,
@@ -51,7 +51,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/太古城",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "1",
         "districtId": "3",
@@ -69,7 +69,7 @@
       "region_en": "Hong Kong Island",
       "district_zh": "東區",
       "district_en": "Eastern",
-      "price_per_ft": 15097.0,
+      "price_per_ft": 15093.5,
       "rent_per_ft": 46.0,
       "transactions": null,
       "for_sale": 90,
@@ -88,7 +88,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/康怡花園",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "1",
         "districtId": "3",
@@ -125,7 +125,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/杏花邨",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "1",
         "districtId": "1",
@@ -143,7 +143,7 @@
       "region_en": "Hong Kong Island",
       "district_zh": "南區",
       "district_en": "Southern",
-      "price_per_ft": 15156.5,
+      "price_per_ft": 15431.5,
       "rent_per_ft": 43.0,
       "transactions": null,
       "for_sale": 144,
@@ -162,7 +162,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/海怡半島",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "1",
         "districtId": "13",
@@ -180,7 +180,7 @@
       "region_en": "Hong Kong Island",
       "district_zh": "東區",
       "district_en": "Eastern",
-      "price_per_ft": 17242.5,
+      "price_per_ft": 17177.5,
       "rent_per_ft": 47.0,
       "transactions": null,
       "for_sale": 54,
@@ -199,7 +199,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/藍灣半島",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "1",
         "districtId": "1",
@@ -217,8 +217,8 @@
       "region_en": "Kowloon",
       "district_zh": "深水埗",
       "district_en": "Sham Shui Po",
-      "price_per_ft": 12028.0,
-      "rent_per_ft": 39.5,
+      "price_per_ft": 11978.0,
+      "rent_per_ft": 39.0,
       "transactions": null,
       "for_sale": 208,
       "for_rent": 38,
@@ -240,7 +240,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/美孚新邨",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "2",
         "districtId": "30",
@@ -281,7 +281,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/黃埔花園",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "2",
         "districtId": "22",
@@ -318,7 +318,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/麗港城",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "2",
         "districtId": "15",
@@ -337,7 +337,7 @@
       "district_zh": "觀塘",
       "district_en": "Kwun Tong",
       "price_per_ft": 14335.0,
-      "rent_per_ft": 39.5,
+      "rent_per_ft": 40.0,
       "transactions": null,
       "for_sale": 25,
       "for_rent": 8,
@@ -355,7 +355,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/匯景花園",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "2",
         "districtId": "46",
@@ -388,7 +388,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/淘大花園",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "2",
         "districtId": "17",
@@ -406,7 +406,7 @@
       "region_en": "Kowloon",
       "district_zh": "觀塘",
       "district_en": "Kwun Tong",
-      "price_per_ft": 11918.5,
+      "price_per_ft": 12029.5,
       "rent_per_ft": 38.0,
       "transactions": null,
       "for_sale": 59,
@@ -425,7 +425,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/德福花園",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "2",
         "districtId": "18",
@@ -443,7 +443,7 @@
       "region_en": "Kowloon",
       "district_zh": "油尖旺",
       "district_en": "Yau Tsim Mong",
-      "price_per_ft": 23066.0,
+      "price_per_ft": 23590.0,
       "rent_per_ft": 57.0,
       "transactions": null,
       "for_sale": 28,
@@ -462,7 +462,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/柏景灣",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "2",
         "districtId": "26",
@@ -481,7 +481,7 @@
       "district_zh": "油尖旺",
       "district_en": "Yau Tsim Mong",
       "price_per_ft": 29630.0,
-      "rent_per_ft": 61.0,
+      "rent_per_ft": 62.0,
       "transactions": null,
       "for_sale": 56,
       "for_rent": 18,
@@ -503,7 +503,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/擎天半島",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "2",
         "districtId": "29",
@@ -522,7 +522,7 @@
       "district_zh": "西貢",
       "district_en": "Sai Kung",
       "price_per_ft": 15200.5,
-      "rent_per_ft": 47.5,
+      "rent_per_ft": 48.0,
       "transactions": null,
       "for_sale": 235,
       "for_rent": 255,
@@ -540,7 +540,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/新都城",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -558,7 +558,7 @@
       "region_en": "New Territories",
       "district_zh": "西貢",
       "district_en": "Sai Kung",
-      "price_per_ft": 16650.5,
+      "price_per_ft": 16546.0,
       "rent_per_ft": 47.0,
       "transactions": null,
       "for_sale": 167,
@@ -577,7 +577,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/將軍澳中心",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -618,7 +618,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/維景灣畔",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -636,8 +636,8 @@
       "region_en": "New Territories",
       "district_zh": "西貢",
       "district_en": "Sai Kung",
-      "price_per_ft": 15483.0,
-      "rent_per_ft": 42.0,
+      "price_per_ft": 15314.0,
+      "rent_per_ft": 41.0,
       "transactions": null,
       "for_sale": 1737,
       "for_rent": 1181,
@@ -667,7 +667,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/日出康城",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "34",
@@ -685,7 +685,7 @@
       "region_en": "New Territories",
       "district_zh": "沙田",
       "district_en": "Sha Tin",
-      "price_per_ft": 14923.0,
+      "price_per_ft": 14870.5,
       "rent_per_ft": 48.5,
       "transactions": null,
       "for_sale": 205,
@@ -704,7 +704,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/沙田第一城",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "38",
@@ -741,7 +741,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/新港城",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "33",
@@ -759,7 +759,7 @@
       "region_en": "New Territories",
       "district_zh": "沙田",
       "district_en": "Sha Tin",
-      "price_per_ft": 12210.5,
+      "price_per_ft": 12265.5,
       "rent_per_ft": 38.0,
       "transactions": null,
       "for_sale": 53,
@@ -778,7 +778,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/翠擁華庭",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "33",
@@ -796,7 +796,7 @@
       "region_en": "New Territories",
       "district_zh": "大埔",
       "district_en": "Tai Po",
-      "price_per_ft": 13598.0,
+      "price_per_ft": 13519.0,
       "rent_per_ft": 44.0,
       "transactions": null,
       "for_sale": 39,
@@ -819,7 +819,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/大埔中心",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "37",
@@ -838,7 +838,7 @@
       "district_zh": "荃灣",
       "district_en": "Tsuen Wan",
       "price_per_ft": 10771.0,
-      "rent_per_ft": 36.0,
+      "rent_per_ft": 36.5,
       "transactions": null,
       "for_sale": 103,
       "for_rent": 29,
@@ -860,7 +860,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/荃灣中心",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "39",
@@ -878,8 +878,8 @@
       "region_en": "New Territories",
       "district_zh": "荃灣",
       "district_en": "Tsuen Wan",
-      "price_per_ft": 13962.0,
-      "rent_per_ft": 38.5,
+      "price_per_ft": 14335.0,
+      "rent_per_ft": 39.0,
       "transactions": null,
       "for_sale": 58,
       "for_rent": 13,
@@ -897,7 +897,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/愉景新城",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "39",
@@ -934,7 +934,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/盈翠半島",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "40",
@@ -953,7 +953,7 @@
       "district_zh": "葵青",
       "district_en": "Kwai Tsing",
       "price_per_ft": 16639.5,
-      "rent_per_ft": 44.0,
+      "rent_per_ft": 44.5,
       "transactions": null,
       "for_sale": 55,
       "for_rent": 18,
@@ -971,7 +971,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/灝景灣",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "40",
@@ -989,7 +989,7 @@
       "region_en": "New Territories",
       "district_zh": "元朗",
       "district_en": "Yuen Long",
-      "price_per_ft": 9025.0,
+      "price_per_ft": 8926.5,
       "rent_per_ft": 26.0,
       "transactions": null,
       "for_sale": 421,
@@ -1008,7 +1008,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/嘉湖山莊",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "42",
@@ -1045,7 +1045,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/映灣園",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "44",
@@ -1063,7 +1063,7 @@
       "region_en": "New Territories",
       "district_zh": "屯門",
       "district_en": "Tuen Mun",
-      "price_per_ft": 10857.5,
+      "price_per_ft": 11107.0,
       "rent_per_ft": 37.0,
       "transactions": null,
       "for_sale": 60,
@@ -1082,7 +1082,7 @@
       },
       "source": "https://hk.centanet.com/findproperty/list/buy/屯門市廣場",
       "price_source": "centaline",
-      "scraped": "2026-11-24",
+      "scraped": "2026-11-25",
       "hsbc": {
         "zoneId": "3",
         "districtId": "43",
@@ -1140,6 +1140,337 @@
       "rent_growth": 3.5
     }
   },
+  "market_benchmark": {
+    "source": "Rating and Valuation Department, private domestic All Classes indices",
+    "source_urls": [
+      "https://www.rvd.gov.hk/datagovhk/1.4M.csv",
+      "https://www.rvd.gov.hk/datagovhk/1.3M.csv"
+    ],
+    "price": {
+      "model": "AR(1) on the log index with a constant and a linear trend",
+      "history_from": "1996-09",
+      "history_to": "2026-09",
+      "past_ten_year_growth": {
+        "low": -0.42,
+        "median": 8.11,
+        "high": 12.9
+      },
+      "growth_pct": {
+        "1": {
+          "low": -11.14,
+          "point": 3.79,
+          "high": 21.22
+        },
+        "2": {
+          "low": -6.7,
+          "point": 3.79,
+          "high": 15.46
+        },
+        "3": {
+          "low": -4.62,
+          "point": 3.79,
+          "high": 12.94
+        },
+        "4": {
+          "low": -3.34,
+          "point": 3.78,
+          "high": 11.43
+        },
+        "5": {
+          "low": -2.44,
+          "point": 3.78,
+          "high": 10.4
+        },
+        "6": {
+          "low": -1.77,
+          "point": 3.78,
+          "high": 9.64
+        },
+        "7": {
+          "low": -1.23,
+          "point": 3.78,
+          "high": 9.05
+        },
+        "8": {
+          "low": -0.8,
+          "point": 3.78,
+          "high": 8.57
+        },
+        "9": {
+          "low": -0.44,
+          "point": 3.78,
+          "high": 8.17
+        },
+        "10": {
+          "low": -0.13,
+          "point": 3.78,
+          "high": 7.84
+        },
+        "11": {
+          "low": 0.14,
+          "point": 3.78,
+          "high": 7.55
+        },
+        "12": {
+          "low": 0.37,
+          "point": 3.78,
+          "high": 7.3
+        },
+        "13": {
+          "low": 0.57,
+          "point": 3.77,
+          "high": 7.08
+        },
+        "14": {
+          "low": 0.75,
+          "point": 3.77,
+          "high": 6.88
+        },
+        "15": {
+          "low": 0.92,
+          "point": 3.77,
+          "high": 6.71
+        },
+        "16": {
+          "low": 1.06,
+          "point": 3.77,
+          "high": 6.55
+        },
+        "17": {
+          "low": 1.2,
+          "point": 3.77,
+          "high": 6.41
+        },
+        "18": {
+          "low": 1.32,
+          "point": 3.77,
+          "high": 6.28
+        },
+        "19": {
+          "low": 1.43,
+          "point": 3.77,
+          "high": 6.16
+        },
+        "20": {
+          "low": 1.53,
+          "point": 3.77,
+          "high": 6.06
+        },
+        "21": {
+          "low": 1.62,
+          "point": 3.77,
+          "high": 5.96
+        },
+        "22": {
+          "low": 1.71,
+          "point": 3.77,
+          "high": 5.86
+        },
+        "23": {
+          "low": 1.79,
+          "point": 3.77,
+          "high": 5.78
+        },
+        "24": {
+          "low": 1.86,
+          "point": 3.77,
+          "high": 5.7
+        },
+        "25": {
+          "low": 1.93,
+          "point": 3.76,
+          "high": 5.63
+        },
+        "26": {
+          "low": 2.0,
+          "point": 3.76,
+          "high": 5.56
+        },
+        "27": {
+          "low": 2.06,
+          "point": 3.76,
+          "high": 5.5
+        },
+        "28": {
+          "low": 2.11,
+          "point": 3.76,
+          "high": 5.44
+        },
+        "29": {
+          "low": 2.17,
+          "point": 3.76,
+          "high": 5.38
+        },
+        "30": {
+          "low": 2.22,
+          "point": 3.76,
+          "high": 5.33
+        }
+      }
+    },
+    "rent": {
+      "model": "AR(1) on the log index with a constant and a linear trend",
+      "history_from": "1996-09",
+      "history_to": "2026-09",
+      "past_ten_year_growth": {
+        "low": -0.19,
+        "median": 3.05,
+        "high": 7.36
+      },
+      "growth_pct": {
+        "1": {
+          "low": -6.95,
+          "point": 1.75,
+          "high": 11.27
+        },
+        "2": {
+          "low": -4.38,
+          "point": 1.75,
+          "high": 8.28
+        },
+        "3": {
+          "low": -3.19,
+          "point": 1.76,
+          "high": 6.96
+        },
+        "4": {
+          "low": -2.47,
+          "point": 1.76,
+          "high": 6.17
+        },
+        "5": {
+          "low": -1.97,
+          "point": 1.76,
+          "high": 5.64
+        },
+        "6": {
+          "low": -1.59,
+          "point": 1.77,
+          "high": 5.24
+        },
+        "7": {
+          "low": -1.29,
+          "point": 1.77,
+          "high": 4.93
+        },
+        "8": {
+          "low": -1.05,
+          "point": 1.77,
+          "high": 4.68
+        },
+        "9": {
+          "low": -0.85,
+          "point": 1.78,
+          "high": 4.47
+        },
+        "10": {
+          "low": -0.67,
+          "point": 1.78,
+          "high": 4.29
+        },
+        "11": {
+          "low": -0.52,
+          "point": 1.78,
+          "high": 4.14
+        },
+        "12": {
+          "low": -0.39,
+          "point": 1.78,
+          "high": 4.0
+        },
+        "13": {
+          "low": -0.27,
+          "point": 1.79,
+          "high": 3.89
+        },
+        "14": {
+          "low": -0.17,
+          "point": 1.79,
+          "high": 3.78
+        },
+        "15": {
+          "low": -0.07,
+          "point": 1.79,
+          "high": 3.69
+        },
+        "16": {
+          "low": 0.02,
+          "point": 1.79,
+          "high": 3.6
+        },
+        "17": {
+          "low": 0.1,
+          "point": 1.8,
+          "high": 3.53
+        },
+        "18": {
+          "low": 0.17,
+          "point": 1.8,
+          "high": 3.46
+        },
+        "19": {
+          "low": 0.24,
+          "point": 1.8,
+          "high": 3.39
+        },
+        "20": {
+          "low": 0.3,
+          "point": 1.8,
+          "high": 3.33
+        },
+        "21": {
+          "low": 0.36,
+          "point": 1.81,
+          "high": 3.28
+        },
+        "22": {
+          "low": 0.41,
+          "point": 1.81,
+          "high": 3.23
+        },
+        "23": {
+          "low": 0.46,
+          "point": 1.81,
+          "high": 3.18
+        },
+        "24": {
+          "low": 0.51,
+          "point": 1.81,
+          "high": 3.13
+        },
+        "25": {
+          "low": 0.55,
+          "point": 1.81,
+          "high": 3.09
+        },
+        "26": {
+          "low": 0.59,
+          "point": 1.82,
+          "high": 3.05
+        },
+        "27": {
+          "low": 0.63,
+          "point": 1.82,
+          "high": 3.02
+        },
+        "28": {
+          "low": 0.67,
+          "point": 1.82,
+          "high": 2.98
+        },
+        "29": {
+          "low": 0.71,
+          "point": 1.82,
+          "high": 2.95
+        },
+        "30": {
+          "low": 0.74,
+          "point": 1.82,
+          "high": 2.92
+        }
+      }
+    }
+  },
   "deposits": {
     "HSBC": {
       "rates": {
@@ -1147,7 +1478,7 @@
         "6": 2.2
       },
       "url": "https://www.hsbc.com.hk/accounts/offers/deposits/",
-      "date": "2026-11-24"
+      "date": "2026-11-25"
     },
     "BOCHK": {
       "rates": {
@@ -1155,7 +1486,7 @@
         "6": 2.4
       },
       "url": "https://www.bochk.com/en/deposits/promotion/timedeposits.html",
-      "date": "2026-11-24"
+      "date": "2026-11-25"
     },
     "Standard Chartered": {
       "rates": {
@@ -1164,7 +1495,7 @@
         "12": 3.1
       },
       "url": "https://www.sc.com/hk/deposits/online-time-deposit/",
-      "date": "2026-11-24"
+      "date": "2026-11-25"
     },
     "Mox": {
       "rates": {
@@ -1175,7 +1506,7 @@
         "24": 2.8
       },
       "url": "https://mox.com/promotions/time-deposit/",
-      "date": "2026-11-24"
+      "date": "2026-11-25"
     },
     "eleBank": {
       "rates": {
@@ -1191,7 +1522,7 @@
         "36": 3.55
       },
       "url": "https://www.elebank.com/",
-      "date": "2026-11-24"
+      "date": "2026-11-25"
     }
   },
   "deposit_ranking": {
